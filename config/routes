@@ -1,0 +1,13 @@
+/static StaticR Static getStatic
+/auth   AuthR   Auth   getAuth
+
+/favicon.ico FaviconR GET
+/robots.txt RobotsR GET
+
+/ RootR GET
+
+/quotes QuotesR GET
+/quotes/#QuoteId QuoteR GET
+/quotes/#QuoteId/up QuoteUpR POST
+/quotes/#QuoteId/down QuoteDownR POST
+/newQuote NewQuoteR GET POST

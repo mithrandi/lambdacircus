@@ -1,0 +1,11 @@
+<div .quote-container>
+    <div .quote .row-fluid>
+        <div .span3 .info>
+            <a rel="bookmark" href="@{QuoteR quoteId}">
+                <h1>#{toPathPiece quoteId}
+            <div #rating .rating>
+                <span .votes-for>+#{show $ quoteRating quote}</span> / 
+                <span .votes-against>-#{show $ quoteVotes quote}
+            <div .timestamp>#{formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" (quoteAdded quote)}
+        <div .span9 .content>
+            <p>#{quoteContent quote}

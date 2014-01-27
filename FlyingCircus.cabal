@@ -1,0 +1,117 @@
+name:              FlyingCircus
+version:           0.0.0
+license:           MIT
+license-file:      LICENSE
+author:            Tristan Seligmann
+maintainer:        Tristan Seligmann
+synopsis:          The greatest Yesod web application ever.
+description:       I'm sure you can say something clever here if you try.
+category:          Web
+stability:         Experimental
+cabal-version:     >= 1.8
+build-type:        Simple
+homepage:          http://FlyingCircus.yesodweb.com/
+
+Flag dev
+    Description:   Turn on development settings, like auto-reload templates.
+    Default:       False
+
+Flag library-only
+    Description:   Build for use with "yesod devel"
+    Default:       False
+
+library
+    exposed-modules: Application
+                     Foundation
+                     Import
+                     Model
+                     Model.Quote
+                     Settings
+                     Settings.StaticFiles
+                     Settings.Development
+                     Handler.Root
+                     Handler.Quotes
+
+    if flag(dev) || flag(library-only)
+        cpp-options:   -DDEVELOPMENT
+        ghc-options:   -Wall -O0
+    else
+        ghc-options:   -Wall -O2
+
+    extensions: TemplateHaskell
+                QuasiQuotes
+                OverloadedStrings
+                NoImplicitPrelude
+                CPP
+                MultiParamTypeClasses
+                TypeFamilies
+                GADTs
+                GeneralizedNewtypeDeriving
+                DeriveDataTypeable
+                FlexibleContexts
+                FlexibleInstances
+                EmptyDataDecls
+                NoMonomorphismRestriction
+
+    build-depends: base                          >= 4          && < 5
+                 , yesod                         >= 1.2        && < 1.3
+                 , yesod-core
+                 , yesod-auth
+                 , yesod-static
+                 , yesod-form
+                 , clientsession
+                 , bytestring
+                 , text
+                 , persistent
+                 , persistent-sqlite
+                 , template-haskell
+                 , hamlet
+                 , shakespeare-css
+                 , shakespeare-js
+                 , shakespeare-text
+                 , hjsmin
+                 , monad-control
+                 , wai-extra
+                 , wai-logger
+                 , fast-logger
+                 , monad-logger
+                 , yaml
+                 , http-conduit
+                 , directory
+                 , warp
+                 , data-default
+                 , aeson
+                 , time
+                 , old-locale
+                 , http-types
+                 , directory
+                 , unordered-containers
+
+executable         FlyingCircus
+    if flag(library-only)
+        Buildable: False
+
+    main-is:           main.hs
+    build-depends:     base
+                     , FlyingCircus
+                     , yesod
+                     , time
+                     , persistent
+                     , text
+                     , aeson
+                     , unordered-containers
+
+    ghc-options:       -threaded -O2
+
+test-suite test
+    type:              exitcode-stdio-1.0
+    main-is:           main.hs
+    hs-source-dirs:    tests
+    ghc-options:       -Wall
+
+    build-depends: base
+                 , yesod-scaffold
+                 , yesod-test
+                 , yesod-core
+                 , persistent
+                 , persistent-sqlite

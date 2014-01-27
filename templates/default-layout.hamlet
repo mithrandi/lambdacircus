@@ -1,0 +1,75 @@
+$maybe msg <- mmsg
+    <div #message>#{msg}
+<div .header>
+    <div .navbar .navbar-fixed-top>
+        <div .navbar-inner>
+            <div .container>
+                <a .btn .btn-navbar data-toggle="collapse" data-target=".nav-collapse">
+                    <span .icon-white .icon-bar>
+                    <span .icon-white .icon-bar>
+                    <span .icon-white .icon-bar>
+
+                <a .brand href="/">Slipgate Quote Database
+
+                <div .nav-collapse>
+                    <ul .nav .pull-right>
+                        <li>
+                            <a .event-routed href="@{RootR}">
+                                <i .icon-white .icon-home>
+                                \ Overview
+                        <li>
+                            <a .event-routed href="@{QuotesR}">
+                                <i .icon-white .icon-comment>
+                                \ Quotes
+                        <li>
+                            <a .event-routed href="@{NewQuoteR}">
+                                <i .icon-white .icon-comment>
+                                \ New Quote
+                <div .search>
+                    <div .icon>
+                        <input type="text" placeholder="Search" />
+<div .page .container>
+    <div #app>
+    <div #static-app>
+        ^{widget}
+    <div .footer>
+        <p>“Magnifying Glass” symbol from <a href="http://thenounproject.com/">The Noun Project</a> collection.
+
+<!-- _.js templates follow -->
+
+<script #template-quote type="text/x-template">
+    <div .quote .row-fluid>
+        <div .span3 .info>
+            <a .event-routed rel="bookmark" href="#">
+                <h1><%- id %>
+            <div #rating .rating>
+                <span .votes-for>+<%- votesFor %>
+                \ / #
+                <span .votes-against>-<%- votesAgainst %>
+            <div .timestamp><%- displayAdded %>
+            <div .controls>
+                <button .btn .btn-mini .btn-success .vote-up title="Vote for">
+                    <i .icon-white .icon-arrow-up>
+                <button .btn .btn-mini .btn-danger .vote-down title="Vote against">
+                    <i .icon-white .icon-arrow-down>
+                <i .voted .icon-white .icon-ok>
+        <div .span9 .content>
+            <p><%- content %>
+
+<script #template-newquote type="text/x-template">
+    <div #newquote>
+        <h1>Add quote
+        <p>Paste your quote in the area below.
+        <h2>Quote format
+        <ul>
+            <li>Edit quotes for brevity — remove or truncate irrelevant text.
+            <li>Remove timestamps, unless they are relevant to the quote.
+            <li>Consider quoting usernames with <code>&lt;</code> and <code>&gt;</code> and avoid characters that are legal in IRC nicknames, such as <code>[</code> and <code>]</code>.
+        <p>An example of a well-formatted quote:
+        <div .quote-content>
+            <pre>
+                &lt;Bob&gt; Why did the chicken cross the road?
+                &lt;James&gt; To get to the other side.
+        <form action="">
+            <textarea>
+            <input type="submit" value="Add quote">
