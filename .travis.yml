@@ -1,0 +1,11 @@
+language: haskell
+deploy:
+  provider: heroku
+  api_key:
+    secure: hBbPLNburzk/YY3hbpgdmbMdfk/osgh76fYBui1Yx6CYBTfMRUii22y8rtrCeu2BD6bEVEoSzFEelxg/LsVUjHIBnowXkl26lu3qbt6WpXi6KIyNJx/Y0U1gyoghW5hHqf2OL0u4zdHc7/jueVNmPcIDqq7XHUq84xi6TvAHwJY=
+  app: lambdacircus
+  on:
+    repo: mithrandi/lambdacircus
+  skip_cleanup: true
+  buildpack: https://github.com/begriffs/heroku-buildpack-ghc.git
+  strategy: anvil
