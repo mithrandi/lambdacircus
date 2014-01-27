@@ -94,41 +94,10 @@ executable         FlyingCircus
         Buildable: False
 
     main-is:           main.hs
+    hs-source-dirs:    app
     build-depends:     base
                      , FlyingCircus
                      , yesod
-                     , yesod-core
-                     , yesod-auth
-                     , yesod-static
-                     , yesod-form
-                     , clientsession
-                     , bytestring
-                     , text
-                     , persistent
-                     , persistent-postgresql
-                     , template-haskell
-                     , hamlet
-                     , shakespeare-css
-                     , shakespeare-js
-                     , shakespeare-text
-                     , hjsmin
-                     , monad-control
-                     , wai-extra
-                     , wai-logger
-                     , fast-logger
-                     , monad-logger
-                     , yaml
-                     , http-conduit
-                     , directory
-                     , warp
-                     , data-default
-                     , aeson
-                     , time
-                     , old-locale
-                     , http-types
-                     , directory
-                     , unordered-containers
-                     , heroku
 
     ghc-options:       -threaded -O2
 
