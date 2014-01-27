@@ -72,7 +72,7 @@ postQuoteDownR quoteId = do
 getNewQuoteR :: Handler Html
 getNewQuoteR = defaultLayout $ do
     setTitle "New quote"
-    $(widgetFile "newQuote")
+    $(widgetFile "newquote")
 
 data PartialQuote = PartialQuote {
     content :: Text
