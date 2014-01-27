@@ -1,6 +1,8 @@
 language: haskell
 before_install:
   - npm install coffee-script -g
+script:
+  - cabal configure && cabal build
 deploy:
   provider: heroku
   api_key:
