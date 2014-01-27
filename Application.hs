@@ -23,6 +23,7 @@ import System.Log.FastLogger (newLoggerSet, defaultBufSize)
 import Network.Wai.Logger (clockDateCacher)
 import Data.Default (def)
 import Yesod.Core.Types (loggerSet, Logger (Logger))
+import Helpers.Heroku (herokuConf)
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
@@ -61,9 +62,14 @@ makeFoundation :: AppConfig DefaultEnv Extra -> IO App
 makeFoundation conf = do
     manager <- newManager conduitManagerSettings
     s <- staticSite
-    dbconf <- withYamlEnvironment "config/sqlite.yml" (appEnv conf)
-              Database.Persist.loadConfig >>=
-              Database.Persist.applyEnv
+    dbconf <- if development
+                -- default behavior when in development
+                then withYamlEnvironment "config/postgresql.yml" (appEnv conf)
+                    Database.Persist.loadConfig >>=
+                    Database.Persist.applyEnv
+
+                -- but parse DATABASE_URL in non-development
+                else herokuConf
     p <- Database.Persist.createPoolConfig (dbconf :: Settings.PersistConf)
 
     loggerSet' <- newLoggerSet defaultBufSize Nothing

@@ -81,16 +81,16 @@ instance Yesod App where
 
         pc <- widgetToPageContent $ do
             $(widgetFile "normalize")
-            mapM_ (addStylesheet . StaticR) [
+            $(combineStylesheets 'StaticR [
                 css_bootstrap_min_css,
-                css_bootstrap_responsive_min_css]
-            mapM_ (addScript . StaticR) [
+                css_bootstrap_responsive_min_css])
+            $(combineScripts 'StaticR [
                 js_jquery_min_js,
                 js_bootstrap_min_js,
                 js_prefixfree_min_js,
                 js_xdate_js,
                 js_underscore_min_js,
-                js_backbone_min_js]
+                js_backbone_min_js])
             $(widgetFile "default-layout")
         giveUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 

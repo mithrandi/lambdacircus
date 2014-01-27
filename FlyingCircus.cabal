@@ -31,6 +31,7 @@ library
                      Settings.Development
                      Handler.Root
                      Handler.Quotes
+                     Helpers.Heroku
 
     if flag(dev) || flag(library-only)
         cpp-options:   -DDEVELOPMENT
@@ -63,7 +64,7 @@ library
                  , bytestring
                  , text
                  , persistent
-                 , persistent-sqlite
+                 , persistent-postgresql
                  , template-haskell
                  , hamlet
                  , shakespeare-css
@@ -86,6 +87,7 @@ library
                  , http-types
                  , directory
                  , unordered-containers
+                 , heroku
 
 executable         FlyingCircus
     if flag(library-only)
@@ -95,11 +97,38 @@ executable         FlyingCircus
     build-depends:     base
                      , FlyingCircus
                      , yesod
-                     , time
-                     , persistent
+                     , yesod-core
+                     , yesod-auth
+                     , yesod-static
+                     , yesod-form
+                     , clientsession
+                     , bytestring
                      , text
+                     , persistent
+                     , persistent-postgresql
+                     , template-haskell
+                     , hamlet
+                     , shakespeare-css
+                     , shakespeare-js
+                     , shakespeare-text
+                     , hjsmin
+                     , monad-control
+                     , wai-extra
+                     , wai-logger
+                     , fast-logger
+                     , monad-logger
+                     , yaml
+                     , http-conduit
+                     , directory
+                     , warp
+                     , data-default
                      , aeson
+                     , time
+                     , old-locale
+                     , http-types
+                     , directory
                      , unordered-containers
+                     , heroku
 
     ghc-options:       -threaded -O2
 
