@@ -1,0 +1,5 @@
+.anvil/
+.cabal-sandbox/
+cabal.sandbox.config
+dist/
+static/combined/
