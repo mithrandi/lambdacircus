@@ -2,5 +2,8 @@
 .cabal-sandbox/
 cabal.sandbox.config
 dist/
+config/client_session_key.aes
 static/combined/
+static/tmp/
 yesod-devel/
+FlyingCircus.sqlite3
