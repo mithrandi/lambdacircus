@@ -7,6 +7,7 @@ module Application
 
 import Import
 import Settings
+import Settings.Development (development)
 import Yesod.Auth
 import Yesod.Default.Config
 import Yesod.Default.Main
@@ -62,14 +63,13 @@ makeFoundation :: AppConfig DefaultEnv Extra -> IO App
 makeFoundation conf = do
     manager <- newManager conduitManagerSettings
     s <- staticSite
-    dbconf <- if development
-                -- default behavior when in development
-                then withYamlEnvironment "config/postgresql.yml" (appEnv conf)
-                    Database.Persist.loadConfig >>=
-                    Database.Persist.applyEnv
-
-                -- but parse DATABASE_URL in non-development
-                else herokuConf
+#if DEVELOPMENT
+    dbconf <- withYamlEnvironment "config/sqlite.yml" (appEnv conf)
+              Database.Persist.loadConfig >>=
+              Database.Persist.applyEnv
+#else
+    dbconf <- herokuConf
+#endif
     p <- Database.Persist.createPoolConfig (dbconf :: Settings.PersistConf)
 
     loggerSet' <- newLoggerSet defaultBufSize Nothing

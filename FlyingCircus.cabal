@@ -65,6 +65,7 @@ library
                  , text
                  , persistent
                  , persistent-postgresql
+                 , persistent-sqlite
                  , template-haskell
                  , hamlet
                  , shakespeare-css
@@ -114,6 +115,7 @@ test-suite test
                  , yesod
                  , persistent
                  , persistent-postgresql
+                 , persistent-sqlite
                  , resourcet
                  , monad-logger
                  , transformers

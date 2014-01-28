@@ -3,3 +3,4 @@
 cabal.sandbox.config
 dist/
 static/combined/
+yesod-devel/
