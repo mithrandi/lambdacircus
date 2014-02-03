@@ -7,7 +7,7 @@
 / RootR GET
 
 /quotes QuotesR GET
-/quotes/#QuoteId QuoteR GET
+/quotes/#QuoteId QuoteR GET DELETE
 /quotes/#QuoteId/up QuoteUpR POST
 /quotes/#QuoteId/down QuoteDownR POST
 /newQuote NewQuoteR GET POST

@@ -1,10 +1,11 @@
 module Foundation where
 
 import Prelude
+import Data.Default (def)
 import Yesod
 import Yesod.Static
 import Yesod.Auth
-import Yesod.Auth.BrowserId (authBrowserId, def)
+import Yesod.Auth.BrowserId (authBrowserId)
 import Yesod.Default.Config
 import Yesod.Default.Util (addStaticContentExternal)
 import Network.HTTP.Conduit (Manager)
@@ -69,9 +70,19 @@ instance Yesod App where
         (120 * 60) -- 120 minutes
         "config/client_session_key.aes"
 
+    isAuthorized (QuoteDownR _) True = do
+        mu <- maybeAuth
+        case mu of
+            Nothing -> return AuthenticationRequired
+            Just (Entity _ user)
+                | userModerator user -> return Authorized
+                | otherwise          -> return $ Unauthorized "Must be a moderator"
+    isAuthorized _ _ = return Authorized
+
     defaultLayout widget = do
         master <- getYesod
         mmsg <- getMessage
+        aid <- maybeAuthId
 
         -- We break up the default layout into two components:
         -- default-layout is the contents of the body tag, and
@@ -137,7 +148,7 @@ instance YesodAuth App where
         case x of
             Just (Entity uid _) -> return $ Just uid
             Nothing -> do
-                fmap Just $ insert $ User (credsIdent creds) Nothing
+                fmap Just $ insert $ User (credsIdent creds) False
 
     -- You can add other plugins like BrowserID, email or OAuth here
     authPlugins _ = [authBrowserId def]

@@ -25,6 +25,11 @@ $maybe msg <- mmsg
                             <a .event-routed href="@{NewQuoteR}">
                                 <i .icon-white .icon-comment>
                                 \ New Quote
+                        <li>
+                            $maybe name <- aid
+                                <a href="@{AuthR LogoutR}">Logout (#{show name})
+                            $nothing
+                                <a href="@{AuthR LoginR}">Login
                 <div .search>
                     <div .icon>
                         <input type="text" placeholder="Search" />
@@ -52,6 +57,8 @@ $maybe msg <- mmsg
                     <i .icon-white .icon-arrow-up>
                 <button .btn .btn-mini .btn-danger .vote-down title="Vote against">
                     <i .icon-white .icon-arrow-down>
+                <button .btn .btn-mini .action-remove title="Remove">
+                    <i .icon-white .icon-remove>
                 <i .voted .icon-white .icon-ok>
         <div .span9 .content>
             <p><%- content %>

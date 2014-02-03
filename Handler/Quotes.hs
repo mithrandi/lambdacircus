@@ -6,6 +6,8 @@ import System.Locale (defaultTimeLocale)
 import qualified Data.HashMap.Strict as H
 import Data.Aeson.Types (Pair)
 import Data.Aeson.TH (deriveJSON, defaultOptions)
+import Network.HTTP.Types (status204)
+import Yesod.Auth (maybeAuth)
 import Model.Quote (quoteRating, quoteVotes)
 
 quoteWidget :: QuoteId -> Quote -> Widget
@@ -37,11 +39,16 @@ jsonWithId eid = jsonWithExtras ["id" .= eid]
 
 quoteJson :: (QuoteId, Quote) -> Handler Value
 quoteJson (qid, quote) = do
+    mu <- maybeAuth
+    let deletable = case mu of
+            Nothing -> False
+            Just (Entity _ user) -> userModerator user
     r <- getUrlRender
     return $ jsonWithExtras
         ["id" .= qid,
          "voteUp" .= r (QuoteUpR qid),
          "voteDown" .= r (QuoteDownR qid),
+         "deletable" .= deletable,
          "self" .= r (QuoteR qid),
          "rating" .= quoteRating quote,
          "votes" .= quoteVotes quote] quote
@@ -55,6 +62,11 @@ getQuoteR qid = do
         provideRep $ defaultLayout $ do
             setTitle "Quote"
             quoteWidget qid quote
+
+deleteQuoteR :: QuoteId -> Handler ()
+deleteQuoteR qid = do
+    runDB $ delete qid
+    sendResponseStatus status204 ()
 
 
 postQuoteUpR :: QuoteId -> Handler Html

@@ -11,14 +11,18 @@ class Quote extends Backbone.Model
             @voted = true
             @set data
 
+    url: =>
+        @get('self')
+
 
 class QuoteView extends Backbone.View
     className: 'quote-container'
     tagName: 'div'
     template: _.template $('#template-quote').html()
     events:
-        'click button.vote-up':   'voteUp'
-        'click button.vote-down': 'voteDown'
+        'click button.vote-up':       'voteUp'
+        'click button.vote-down':     'voteDown'
+        'click button.action-remove': 'actionRemove'
 
     initialize: ->
         @model.on 'change', @render
@@ -32,6 +36,8 @@ class QuoteView extends Backbone.View
         if @model.voted
             @disableVoting true
             @hideVoting()
+        if !@model.get('deletable')
+            @$('button.action-remove').hide()
         return @
 
     remove: =>
@@ -47,6 +53,15 @@ class QuoteView extends Backbone.View
     voteDown: ->
         @disableVoting true
         d = @model.voteDown()
+        d.fail (f) =>
+            @flash()
+            @disableVoting false
+
+    actionRemove: ->
+        @disableVoting true
+        d = @model.destroy()
+        #d.done (data) =>
+        #    @remove()
         d.fail (f) =>
             @flash()
             @disableVoting false
