@@ -18,16 +18,17 @@ quoteWidget quoteId quote = do
     $(widgetFile "quote")
 
 
-parseQid :: Text -> Maybe QuoteId
-parseQid = either (const Nothing) (Just . Key . PersistInt64 . fst) . decimal
+decimalParam :: (Integral a, MonadHandler m) => Text -> m (Maybe a)
+decimalParam name = do
+    value <- lookupGetParam name
+    return $ value >>= either (const Nothing) (Just . fst) . decimal
 
 
 getQuotesR :: Handler TypedContent
 getQuotesR = do
-    limitS <- lookupGetParam "limit"
-    let limit = fromMaybe 10 (either (const Nothing) (Just . fst) . decimal =<< limitS)
-    from <- lookupGetParam "from"
-    let criteria = maybe [] (\q -> [QuoteId <=. q]) (parseQid =<< from)
+    limit <- fromMaybe 10 <$> decimalParam "limit"
+    criteria <- maybe [] (\q -> [QuoteId <=. Key (PersistInt64 q)])
+        <$> decimalParam "from"
     quotes <- runDB $ selectList criteria [Desc QuoteAdded, LimitTo limit]
     selectRep $ do
         provideRep $ do
