@@ -9,15 +9,26 @@ import Data.Aeson.TH (deriveJSON, defaultOptions)
 import Network.HTTP.Types (status204)
 import Yesod.Auth (maybeAuth)
 import Model.Quote (quoteRating, quoteVotes)
+import Data.Maybe (fromMaybe)
+import Data.Text.Read (decimal)
+
 
 quoteWidget :: QuoteId -> Quote -> Widget
 quoteWidget quoteId quote = do
     $(widgetFile "quote")
 
 
+parseQid :: Text -> Maybe QuoteId
+parseQid = either (const Nothing) (Just . Key . PersistInt64 . fst) . decimal
+
+
 getQuotesR :: Handler TypedContent
 getQuotesR = do
-    quotes <- runDB $ selectList [] [Desc QuoteAdded]
+    limitS <- lookupGetParam "limit"
+    let limit = fromMaybe 10 (either (const Nothing) (Just . fst) . decimal =<< limitS)
+    from <- lookupGetParam "from"
+    let criteria = maybe [] (\q -> [QuoteId <=. q]) (parseQid =<< from)
+    quotes <- runDB $ selectList criteria [Desc QuoteAdded, LimitTo limit]
     selectRep $ do
         provideRep $ do
             values <- mapM (\(Entity qid q) -> quoteJson (qid, q)) quotes
