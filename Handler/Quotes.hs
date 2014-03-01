@@ -44,10 +44,6 @@ jsonWithExtras extras entity = case toJSON entity of
     _ -> error "Unexpected JSON representation of entity"
 
 
-jsonWithId :: (ToJSON a, ToJSON b) => a -> b -> Value
-jsonWithId eid = jsonWithExtras ["id" .= eid]
-
-
 quoteJson :: (QuoteId, Quote) -> Handler Value
 quoteJson (qid, quote) = do
     mu <- maybeAuth
@@ -73,6 +69,7 @@ getQuoteR qid = do
         provideRep $ defaultLayout $ do
             setTitle "Quote"
             quoteWidget qid quote
+
 
 deleteQuoteR :: QuoteId -> Handler ()
 deleteQuoteR qid = do
@@ -102,6 +99,7 @@ data PartialQuote = PartialQuote {
     }
 
 $(deriveJSON defaultOptions ''PartialQuote)
+
 
 postNewQuoteR :: Handler Value
 postNewQuoteR = do
