@@ -6,6 +6,7 @@
 
 / RootR GET
 
+/top TopQuotesR GET
 /quotes QuotesR GET
 /quotes/#QuoteId QuoteR GET DELETE
 /quotes/#QuoteId/up QuoteUpR POST

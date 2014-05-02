@@ -16,3 +16,5 @@ Quote json
     added UTCTime
     votesFor Int64
     votesAgainst Int64
+    rating Int64 default=0
+    votes Int64 default=0

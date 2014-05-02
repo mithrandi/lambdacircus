@@ -8,7 +8,6 @@ import Data.Aeson.Types (Pair)
 import Data.Aeson.TH (deriveJSON, defaultOptions)
 import Network.HTTP.Types (status204)
 import Yesod.Auth (maybeAuth)
-import Model.Quote (quoteRating, quoteVotes)
 import Data.Maybe (fromMaybe)
 import Data.Text.Read (decimal)
 
@@ -24,12 +23,8 @@ decimalParam name = do
     return $ value >>= either (const Nothing) (Just . fst) . decimal
 
 
-getQuotesR :: Handler TypedContent
-getQuotesR = do
-    limit <- fromMaybe 10 <$> decimalParam "limit"
-    criteria <- maybe [] (\q -> [QuoteId <=. Key (PersistInt64 q)])
-        <$> decimalParam "from"
-    quotes <- runDB $ selectList criteria [Desc QuoteAdded, LimitTo limit]
+renderQuotes :: [Entity Quote] -> Handler TypedContent
+renderQuotes quotes =
     selectRep $ do
         provideRep $ do
             values <- mapM (\(Entity qid q) -> quoteJson (qid, q)) quotes
@@ -37,6 +32,24 @@ getQuotesR = do
         provideRep $ defaultLayout $ do
                 setTitle "Quotes"
                 $(widgetFile "quotes")
+
+
+getQuotesR :: Handler TypedContent
+getQuotesR = do
+    limit <- fromMaybe 10 <$> decimalParam "limit"
+    criteria <- maybe [] (\q -> [QuoteId <=. Key (PersistInt64 q)])
+        <$> decimalParam "from"
+    quotes <- runDB $ selectList criteria [Desc QuoteAdded, LimitTo limit]
+    renderQuotes quotes
+
+
+getTopQuotesR :: Handler TypedContent
+getTopQuotesR = do
+    limit <- fromMaybe 10 <$> decimalParam "limit"
+    offset <- maybe 0 (* limit) <$> decimalParam "page"
+    quotes <- runDB $ selectList [] [
+        Desc QuoteRating, LimitTo limit, OffsetBy offset]
+    renderQuotes quotes
 
 
 jsonWithExtras :: (ToJSON a) => [Pair] -> a -> Value
@@ -57,9 +70,7 @@ quoteJson (qid, quote) = do
          "voteUp" .= r (QuoteUpR qid),
          "voteDown" .= r (QuoteDownR qid),
          "deletable" .= deletable,
-         "self" .= r (QuoteR qid),
-         "rating" .= quoteRating quote,
-         "votes" .= quoteVotes quote] quote
+         "self" .= r (QuoteR qid)] quote
 
 
 getQuoteR :: QuoteId -> Handler TypedContent
@@ -80,13 +91,19 @@ deleteQuoteR qid = do
 
 postQuoteUpR :: QuoteId -> Handler Html
 postQuoteUpR quoteId = do
-    runDB $ update quoteId [QuoteVotesFor +=. 1]
+    runDB $ update quoteId [
+        QuoteVotesFor +=. 1,
+        QuoteRating +=. 1,
+        QuoteVotes +=. 1]
     redirect (QuoteR quoteId)
 
 
 postQuoteDownR :: QuoteId -> Handler Html
 postQuoteDownR quoteId = do
-    runDB $ update quoteId [QuoteVotesAgainst +=. 1]
+    runDB $ update quoteId [
+        QuoteVotesAgainst +=. 1,
+        QuoteRating -=. 1,
+        QuoteVotes +=. 1]
     redirect (QuoteR quoteId)
 
 
@@ -106,6 +123,12 @@ postNewQuoteR :: Handler Value
 postNewQuoteR = do
     value <- parseJsonBody_
     created <- liftIO getCurrentTime
-    let q = Quote (content value) created 0 0
+    let q = Quote {
+        quoteContent = (content value),
+        quoteAdded = created,
+        quoteVotesFor = 0,
+        quoteVotesAgainst = 0,
+        quoteRating = 0,
+        quoteVotes = 0}
     qid <- runDB $ insert q
     quoteJson (qid, q)
