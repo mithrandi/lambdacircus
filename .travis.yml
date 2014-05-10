@@ -5,7 +5,10 @@ before_install:
 script:
   - cabal configure && cabal build
 before_deploy:
-  - git add -f static/ && GIT_COMMIT_AUTHOR="travis" GIT_COMMIT_EMAIL="travis@mithrandi.net" git commit -m 'Add built static assets.'
+  - git config user.name 'Travis Builder'
+  - git config user.email 'travis@mithrandi.net'
+  - git add -f static/
+  - git commit -m 'Add built static assets.'
 deploy:
   provider: heroku
   api_key:
