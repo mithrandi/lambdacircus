@@ -4,6 +4,8 @@ before_install:
   - cabal install 'alex >= 3.0.5'
 script:
   - cabal configure && cabal build
+before_deploy:
+  - git add -f static/ && git commit -m 'Add built static assets.'
 deploy:
   provider: heroku
   api_key:
@@ -13,4 +15,3 @@ deploy:
     repo: mithrandi/lambdacircus
   skip_cleanup: true
   strategy: git
-  before_deploy: git add -f static/ && git commit -m 'Add built static assets.'
