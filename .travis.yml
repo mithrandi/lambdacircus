@@ -13,3 +13,4 @@ deploy:
     repo: mithrandi/lambdacircus
   skip_cleanup: true
   strategy: git
+  before_deploy: git add -f static/ && git commit -m 'Add built static assets.'
