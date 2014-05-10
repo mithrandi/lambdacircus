@@ -68,6 +68,7 @@ library
                  , persistent-sqlite
                  , template-haskell
                  , hamlet
+                 , shakespeare
                  , shakespeare-css
                  , shakespeare-js
                  , shakespeare-text
