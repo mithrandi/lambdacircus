@@ -12,5 +12,4 @@ deploy:
   on:
     repo: mithrandi/lambdacircus
   skip_cleanup: true
-  buildpack: https://github.com/begriffs/heroku-buildpack-ghc.git
-  strategy: anvil
+  strategy: git
