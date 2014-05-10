@@ -1,6 +1,7 @@
 language: haskell
 before_install:
   - npm install coffee-script -g
+  - cabal install alex >= 3.0.5
 script:
   - cabal configure && cabal build
 deploy:
