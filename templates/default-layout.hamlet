@@ -18,9 +18,13 @@ $maybe msg <- mmsg
                                 <i .icon-white .icon-home>
                                 \ Overview
                         <li>
-                            <a .event-routed href="@{QuotesR}">
+                            <a .event-routed href="@{TopQuotesR 0}">
                                 <i .icon-white .icon-comment>
-                                \ Quotes
+                                \ Top
+                        <li>
+                            <a .event-routed href="@{DefQuotesR}">
+                                <i .icon-white .icon-comment>
+                                \ Browse
                         <li>
                             <a .event-routed href="@{NewQuoteR}">
                                 <i .icon-white .icon-comment>
@@ -80,3 +84,11 @@ $maybe msg <- mmsg
         <form action="">
             <textarea>
             <input type="submit" value="Add quote">
+
+<script #template-quotelist type="text/x-template">
+    <div>
+        <div .quotes>
+        <a .prev>
+            <i .icon-white .icon-backward>
+        <a .next>
+            <i .icon-white .icon-forward>

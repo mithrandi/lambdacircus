@@ -6,8 +6,9 @@
 
 / RootR GET
 
-/top TopQuotesR GET
-/quotes QuotesR GET
+/top/pages/#Integer TopQuotesR GET
+/quotes DefQuotesR GET
+/quotes/!from/#Integer QuotesR GET
 /quotes/#QuoteId QuoteR GET DELETE
 /quotes/#QuoteId/up QuoteUpR POST
 /quotes/#QuoteId/down QuoteDownR POST

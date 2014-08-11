@@ -60,8 +60,8 @@ class QuoteView extends Backbone.View
     actionRemove: ->
         @disableVoting true
         d = @model.destroy()
-        #d.done (data) =>
-        #    @remove()
+        d.done (data) =>
+            @remove()
         d.fail (f) =>
             @flash()
             @disableVoting false
@@ -89,6 +89,7 @@ class QuoteList extends Backbone.Collection
 
 class QuoteListView extends Backbone.View
     tagName: 'div'
+    template: _.template $('#template-quotelist').html()
 
     initialize: ->
         @model.on 'add', @addOne
@@ -96,13 +97,22 @@ class QuoteListView extends Backbone.View
 
     addOne: (quote) =>
         view = new QuoteView(model: quote)
-        @$el.append view.render().el
+        @$('.quotes').append view.render().el
 
-    reset: =>
-        @$el.empty()
+    reset: (collection, options) =>
+        @$('.quotes').empty()
         @model.each (quote) => @addOne quote
+        if options.prev
+            @$('a.prev').attr('href', options.prev)
+        else
+            @$('a.prev').removeAttr('href')
+        if options.next
+            @$('a.next').attr('href', options.next)
+        else
+            @$('a.next').removeAttr('href')
 
     render: ->
+        @$el.html @template()
         return @
 
 
@@ -157,24 +167,37 @@ class AppView extends Backbone.View
 
 class CircusRouter extends Backbone.Router
     routes:
-        '':            'overview'
-        'quotes':      'quotes'
-        'quotes/:qid': 'quote'
-        'newQuote':    'newQuote'
+        '':                  'overview'
+        'top/pages/:page':   'top'
+        'quotes':            'quotes'
+        'quotes/from/:page': 'quotesPage'
+        'quotes/:qid':       'quote'
+        'newQuote':          'newQuote'
 
     overview: ->
         view = new OverviewView
         @app.replaceView view
 
-    quotes: ->
+    loadQuotes: (uri) ->
         if @app.currentView instanceof QuoteListView
             quoteList = @app.currentView.model
         else
             quoteList = new QuoteList
             view = new QuoteListView(model: quoteList)
             @app.replaceView view
-        $.getJSON('/quotes').success (data) ->
-            quoteList.reset data
+        $.getJSON(uri).success (data) ->
+            quoteList.reset data.quotes,
+                prev: data.prev
+                next: data.next
+
+    top: (page) ->
+        @loadQuotes '/top/pages/' + page
+
+    quotes: ->
+        @loadQuotes '/quotes'
+
+    quotesPage: (page) ->
+        @loadQuotes '/quotes/from/' + page
 
     quote: (qid) ->
         if @app.currentView instanceof QuoteListView

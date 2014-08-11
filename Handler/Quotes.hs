@@ -8,8 +8,8 @@ import Data.Aeson.Types (Pair)
 import Data.Aeson.TH (deriveJSON, defaultOptions)
 import Network.HTTP.Types (status204)
 import Yesod.Auth (maybeAuth)
-import Data.Maybe (fromMaybe)
-import Data.Text.Read (decimal)
+import Data.Maybe (catMaybes)
+import Control.Monad (guard)
 
 
 quoteWidget :: QuoteId -> Quote -> Widget
@@ -17,39 +17,47 @@ quoteWidget quoteId quote = do
     $(widgetFile "quote")
 
 
-decimalParam :: (Integral a, MonadHandler m) => Text -> m (Maybe a)
-decimalParam name = do
-    value <- lookupGetParam name
-    return $ value >>= either (const Nothing) (Just . fst) . decimal
-
-
-renderQuotes :: [Entity Quote] -> Handler TypedContent
-renderQuotes quotes =
+renderQuotes :: [Entity Quote] -> Maybe Text -> Maybe Text -> Handler TypedContent
+renderQuotes quotes prev next =
     selectRep $ do
         provideRep $ do
             values <- mapM (\(Entity qid q) -> quoteJson (qid, q)) quotes
-            return $ toJSON values
+            return . object . catMaybes $ [
+                Just $ "quotes" .= values,
+                ("prev" .=) `fmap` prev,
+                ("next" .=) `fmap` next]
         provideRep $ defaultLayout $ do
                 setTitle "Quotes"
                 $(widgetFile "quotes")
 
 
-getQuotesR :: Handler TypedContent
-getQuotesR = do
-    limit <- fromMaybe 10 <$> decimalParam "limit"
-    criteria <- maybe [] (\q -> [QuoteId <=. Key (PersistInt64 q)])
-        <$> decimalParam "from"
-    quotes <- runDB $ selectList criteria [Desc QuoteAdded, LimitTo limit]
-    renderQuotes quotes
+getDefQuotesR :: Handler TypedContent
+getDefQuotesR = do
+    Just (Entity (Key (PersistInt64 qid)) _) <- runDB $ selectFirst [] [Desc QuoteAdded, LimitTo 1]
+    redirect $ QuotesR (fromIntegral qid)
 
 
-getTopQuotesR :: Handler TypedContent
-getTopQuotesR = do
-    limit <- fromMaybe 10 <$> decimalParam "limit"
-    offset <- maybe 0 (* limit) <$> decimalParam "page"
+getQuotesR :: Integer -> Handler TypedContent
+getQuotesR from = do
+    let limit = 10
+    quotes <- runDB $ selectList
+        [QuoteId <=. Key (PersistInt64 (fromInteger from))]
+        [Desc QuoteAdded, LimitTo limit]
+    r <- getUrlRender
+    let prev = Just . r . QuotesR $ from + limit
+        next = guard (from > 1) >> (Just . r . QuotesR) (max (from - limit) 1)
+    renderQuotes quotes prev next
+
+
+getTopQuotesR :: Integer -> Handler TypedContent
+getTopQuotesR page = do
+    let limit = 10
     quotes <- runDB $ selectList [] [
-        Desc QuoteRating, LimitTo limit, OffsetBy offset]
-    renderQuotes quotes
+        Desc QuoteRating, LimitTo limit, OffsetBy . fromInteger $ page * limit]
+    r <- getUrlRender
+    let prev = guard (page > 0) >> (Just . r . TopQuotesR) (page - 1)
+        next = guard (length quotes > 0) >> (Just . r . TopQuotesR) (page + 1)
+    renderQuotes quotes prev next
 
 
 jsonWithExtras :: (ToJSON a) => [Pair] -> a -> Value
