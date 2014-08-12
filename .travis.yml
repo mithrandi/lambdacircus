@@ -5,9 +5,11 @@ before_install:
 script:
   - cabal configure && cabal build
 before_deploy:
+  - coffee -cb templates/default-layout.coffee
   - git config user.name 'Travis Builder'
   - git config user.email 'travis@mithrandi.net'
-  - git add -f static/
+  - git rm templates/default-layout.coffee
+  - git add -f templates/default-layout.js static/
   - git commit -m 'Add built static assets.'
 deploy:
   provider: heroku
