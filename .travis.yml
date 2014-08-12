@@ -3,13 +3,12 @@ before_install:
   - npm install coffee-script -g
   - cabal install 'alex >= 3.0.5'
 script:
-  - coffee -cb templates/default-layout.coffee && git add templates/default-layout.js && git rm templates/default-layout.coffee
+  - coffee -cb templates/default-layout.coffee && mv templates/default-layout.js templates/default-layout.julius && git add templates/default-layout.julius && git rm templates/default-layout.coffee
   - cabal configure && cabal build
 before_deploy:
   - git config user.name 'Travis Builder'
   - git config user.email 'travis@mithrandi.net'
-  - git add -f static/
-  - git commit -m 'Add built static assets.'
+  - git commit -m 'Add built CoffeeScript.'
 deploy:
   provider: heroku
   api_key:
