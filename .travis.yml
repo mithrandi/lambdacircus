@@ -8,7 +8,8 @@ script:
 before_deploy:
   - git config user.name 'Travis Builder'
   - git config user.email 'travis@mithrandi.net'
-  - git commit -m 'Add built CoffeeScript assets.'
+  - git add -f static/
+  - git commit -m 'Add built static assets.'
 deploy:
   provider: heroku
   api_key:
