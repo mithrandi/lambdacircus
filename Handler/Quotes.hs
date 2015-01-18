@@ -50,7 +50,7 @@ getQuotesR from = do
     let limit = 10
     quotes <- runDB $ selectList
         [QuoteId <=. toSqlKey (fromInteger from)]
-        [Desc QuoteAdded, LimitTo limit]
+        [Desc QuoteId, LimitTo limit]
     r <- getUrlRender
     let prev = Just . r . QuotesR $ from + limit
         next = guard (from > 1) >> (Just . r . QuotesR) (max (from - limit) 1)
@@ -61,7 +61,10 @@ getTopQuotesR :: Integer -> Handler TypedContent
 getTopQuotesR page = do
     let limit = 10
     quotes <- runDB $ selectList [] [
-        Desc QuoteRating, LimitTo limit, OffsetBy . fromInteger $ page * limit]
+        Desc QuoteRating,
+        Asc QuoteId,
+        LimitTo limit,
+        OffsetBy . fromInteger $ page * limit]
     r <- getUrlRender
     let prev = guard (page > 0) >> (Just . r . TopQuotesR) (page - 1)
         next = guard (length quotes > 0) >> (Just . r . TopQuotesR) (page + 1)
