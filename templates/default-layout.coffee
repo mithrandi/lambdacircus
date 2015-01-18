@@ -179,14 +179,14 @@ class CircusRouter extends Backbone.Router
         view = new OverviewView
         @app.replaceView view
 
-    loadQuotes: (uri) ->
+    loadQuotes: (uri, data) ->
         if @app.currentView instanceof QuoteListView
             quoteList = @app.currentView.model
         else
             quoteList = new QuoteList
             view = new QuoteListView(model: quoteList)
             @app.replaceView view
-        $.getJSON(uri).success (data) ->
+        $.getJSON(uri, data).success (data) ->
             quoteList.reset data.quotes,
                 prev: data.prev
                 next: data.next
@@ -220,3 +220,6 @@ $(document).ready ->
     window.router = new CircusRouter
     router.app = app
     Backbone.history.start pushState: true
+    $('#search').on 'submit', (event) ->
+        event.preventDefault()
+        router.loadQuotes '/quotes', $(this).serialize()

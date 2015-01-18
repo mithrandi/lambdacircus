@@ -6,7 +6,7 @@ import           Data.Aeson.Types (Pair)
 import qualified Data.HashMap.Strict as H
 import           Data.Maybe (catMaybes)
 import           Data.Time (getCurrentTime, formatTime)
-import           Database.Persist.Sql (fromSqlKey, toSqlKey)
+import           Database.Persist.Sql (fromSqlKey, toSqlKey, rawSql)
 import           Import
 import           Network.HTTP.Types (status204)
 import           System.Locale (defaultTimeLocale)
@@ -34,8 +34,15 @@ renderQuotes quotes prev next =
 
 getDefQuotesR :: Handler TypedContent
 getDefQuotesR = do
-    Just entity <- runDB $ selectFirst [] [Desc QuoteAdded, LimitTo 1]
-    redirect $ QuotesR (fromIntegral . fromSqlKey . entityKey $ entity)
+  maybeMatches <- lookupGetParam "matches"
+  case maybeMatches of
+   Nothing -> do
+     Just entity <- runDB $ selectFirst [] [Desc QuoteAdded, LimitTo 1]
+     redirect $ QuotesR (fromIntegral . fromSqlKey . entityKey $ entity)
+   Just matches -> do
+     quotes <- runDB $ rawSql q [toPersistValue matches]
+     renderQuotes quotes Nothing Nothing
+  where q = "SELECT ?? FROM quote, to_tsvector('english', content) tsvector, plainto_tsquery('english', ?) query WHERE tsvector @@ query ORDER BY ts_rank_cd(tsvector, query) DESC LIMIT 50"
 
 
 getQuotesR :: Integer -> Handler TypedContent
