@@ -56,7 +56,7 @@ widgetFileSettings = def
     { wfsHamletSettings = defaultHamletSettings
         { hamletNewlines = AlwaysNewlines
         }
-    , wfsLanguages = (coffeeTL:) . defaultTemplateLanguages
+    --, wfsLanguages = (coffeeTL:) . defaultTemplateLanguages
     }
     where
         coffeeTL = TemplateLanguage True "coffee" coffeeFile coffeeFileReload

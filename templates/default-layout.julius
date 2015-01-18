@@ -1,0 +1,385 @@
+var AppView, CircusRouter, NewQuoteView, OverviewView, QuoteList, QuoteListView,
+  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+
+var Quote = Backbone.Model.extend({
+    voteUp: function () {
+        var d = $.post(this.get('voteUp'), void 0, void 0, 'json');
+        return d.done((function (_this) {
+            return function (data) {
+                _this.voted = true;
+                return _this.set(data);
+            };
+        })(this));
+    },
+
+    voteDown: function () {
+        var d = $.post(this.get('voteDown'), void 0, void 0, 'json');
+        return d.done((function(_this) {
+            return function(data) {
+                _this.voted = true;
+                return _this.set(data);
+            };
+        })(this));
+    },
+
+    url: function() {
+        return this.get('self');
+    }
+});
+
+
+var QuoteView = Backbone.View.extend({
+    className: 'quote-container',
+    tagName: 'div',
+    template: _.template($('#template-quote').html()),
+    events: {
+        'click button.vote-up': 'voteUp',
+        'click button.vote-down': 'voteDown',
+        'click button.action-remove': 'actionRemove'
+    },
+
+    initialize: function () {
+        this.model.on('change', this.render, this);
+        this.model.on('remove', this.remove, this);
+    },
+
+    render: function () {
+        var json = this.model.toJSON();
+        json.displayAdded = new XDate(json.added).toString('yyyy-MM-dd HH:mm:ss');
+        this.$el.html(this.template(json));
+        this.$('a').attr('href', this.model.get('self'));
+        if (this.model.voted) {
+            this.disableVoting(true);
+            this.hideVoting();
+        }
+        if (!this.model.get('deletable')) {
+            this.$('button.action-remove').hide();
+        }
+        return this;
+    },
+
+    remove: function () {
+        this.$el.remove();
+    },
+
+    voteUp: function () {
+        this.disableVoting(true);
+        var d = this.model.voteUp();
+        return d.fail((function(_this) {
+            return function(f) {
+                _this.flash();
+                return _this.disableVoting(false);
+            };
+        })(this));
+    },
+
+    voteDown: function () {
+        this.disableVoting(true);
+        var d = this.model.voteDown();
+        return d.fail((function(_this) {
+            return function(f) {
+                _this.flash();
+                return _this.disableVoting(false);
+            };
+        })(this));
+    },
+
+    actionRemove: function () {
+        this.disableVoting(true);
+        var d = this.model.destroy();
+        d.done((function(_this) {
+            return function(data) {
+                return _this.remove();
+            };
+        })(this));
+        return d.fail((function(_this) {
+            return function(f) {
+                _this.flash();
+                return _this.disableVoting(false);
+            };
+        })(this));
+    },
+
+    flash: function (cssClass) {
+        if (cssClass == null) {
+            cssClass = 'error-flash';
+        }
+        var el = $('<div />').addClass(cssClass);
+        this.$('.quote').append(el);
+        return el.fadeIn(200).fadeOut(600).queue(function() {
+            el.remove();
+            return el.dequeue();
+        });
+    },
+
+    disableVoting: function (disabled) {
+        if (disabled == null) {
+            disabled = true;
+        }
+        return this.$('.controls button').prop('disabled', disabled);
+    },
+
+    hideVoting: function () {
+    var controls = this.$('.controls');
+        controls.css({opacity: 1});
+        controls.find('button').fadeOut(200);
+        controls.find('.voted').fadeIn(200);
+    }
+});
+
+QuoteList = (function(_super) {
+  __extends(QuoteList, _super);
+
+  function QuoteList() {
+    return QuoteList.__super__.constructor.apply(this, arguments);
+  }
+
+  QuoteList.prototype.model = Quote;
+
+  return QuoteList;
+
+})(Backbone.Collection);
+
+QuoteListView = (function(_super) {
+  __extends(QuoteListView, _super);
+
+  function QuoteListView() {
+    this.reset = __bind(this.reset, this);
+    this.addOne = __bind(this.addOne, this);
+    return QuoteListView.__super__.constructor.apply(this, arguments);
+  }
+
+  QuoteListView.prototype.tagName = 'div';
+
+  QuoteListView.prototype.template = _.template($('#template-quotelist').html());
+
+  QuoteListView.prototype.initialize = function() {
+    this.model.on('add', this.addOne);
+    return this.model.on('reset', this.reset);
+  };
+
+  QuoteListView.prototype.addOne = function(quote) {
+    var view;
+    view = new QuoteView({
+      model: quote
+    });
+    return this.$('.quotes').append(view.render().el);
+  };
+
+  QuoteListView.prototype.reset = function(collection, options) {
+    this.$('.quotes').empty();
+    this.model.each((function(_this) {
+      return function(quote) {
+        return _this.addOne(quote);
+      };
+    })(this));
+    if (options.prev) {
+      this.$('a.prev').attr('href', options.prev);
+    } else {
+      this.$('a.prev').removeAttr('href');
+    }
+    if (options.next) {
+      return this.$('a.next').attr('href', options.next);
+    } else {
+      return this.$('a.next').removeAttr('href');
+    }
+  };
+
+  QuoteListView.prototype.render = function() {
+    this.$el.html(this.template());
+    return this;
+  };
+
+  return QuoteListView;
+
+})(Backbone.View);
+
+OverviewView = (function(_super) {
+  __extends(OverviewView, _super);
+
+  function OverviewView() {
+    this.remove = __bind(this.remove, this);
+    return OverviewView.__super__.constructor.apply(this, arguments);
+  }
+
+  OverviewView.prototype.tagName = 'div';
+
+  OverviewView.prototype.render = function() {
+    return this;
+  };
+
+  OverviewView.prototype.remove = function() {
+    return this.$el.remove();
+  };
+
+  return OverviewView;
+
+})(Backbone.View);
+
+NewQuoteView = (function(_super) {
+  __extends(NewQuoteView, _super);
+
+  function NewQuoteView() {
+    this.render = __bind(this.render, this);
+    return NewQuoteView.__super__.constructor.apply(this, arguments);
+  }
+
+  NewQuoteView.prototype.tagName = 'div';
+
+  NewQuoteView.prototype.template = _.template($('#template-newquote').html());
+
+  NewQuoteView.prototype.events = {
+    'submit form': 'addQuote'
+  };
+
+  NewQuoteView.prototype.render = function() {
+    this.$el.html(this.template());
+    return this;
+  };
+
+  NewQuoteView.prototype.addQuote = function(event) {
+    var d, q;
+    event.preventDefault();
+    q = {
+      content: this.$('textarea').val()
+    };
+    d = $.ajax('/newQuote', {
+      data: JSON.stringify(q),
+      type: 'POST',
+      dataType: 'json',
+      contentType: 'application/json'
+    });
+      return d.done(function(data) {
+          // Work around Backbone.Router braindamage
+          history.pushState({}, '', data.self);
+          return Backbone.history.loadUrl();
+      });
+  };
+
+  return NewQuoteView;
+
+})(Backbone.View);
+
+AppView = (function(_super) {
+  __extends(AppView, _super);
+
+  function AppView() {
+    return AppView.__super__.constructor.apply(this, arguments);
+  }
+
+  AppView.prototype.el = $('#app');
+
+  AppView.prototype.initialize = function() {
+    return $('body').on('click', 'a.event-routed', function(event) {
+      event.preventDefault();
+      return router.navigate(this.pathname, {
+        trigger: true
+      });
+    });
+  };
+
+  AppView.prototype.replaceView = function(view) {
+    view.render();
+    if (this.currentView) {
+      this.currentView.remove();
+    }
+    this.currentView = view;
+    this.$el.empty;
+    return this.$el.append(view.el);
+  };
+
+  return AppView;
+
+})(Backbone.View);
+
+CircusRouter = (function(_super) {
+  __extends(CircusRouter, _super);
+
+  function CircusRouter() {
+    return CircusRouter.__super__.constructor.apply(this, arguments);
+  }
+
+  CircusRouter.prototype.routes = {
+    '': 'overview',
+    'top/pages/:page': 'top',
+    'quotes': 'quotes',
+    'quotes/from/:page': 'quotesPage',
+    'quotes/:qid': 'quote',
+    'newQuote': 'newQuote'
+  };
+
+  CircusRouter.prototype.overview = function() {
+    var view;
+    view = new OverviewView;
+    return this.app.replaceView(view);
+  };
+
+  CircusRouter.prototype.loadQuotes = function(uri, data) {
+    var quoteList, view;
+    if (this.app.currentView instanceof QuoteListView) {
+      quoteList = this.app.currentView.model;
+    } else {
+      quoteList = new QuoteList;
+      view = new QuoteListView({
+        model: quoteList
+      });
+      this.app.replaceView(view);
+    }
+    return $.getJSON(uri, data).success(function(data) {
+      return quoteList.reset(data.quotes, {
+        prev: data.prev,
+        next: data.next
+      });
+    });
+  };
+
+  CircusRouter.prototype.top = function(page) {
+    return this.loadQuotes('/top/pages/' + page);
+  };
+
+  CircusRouter.prototype.quotes = function() {
+    return this.loadQuotes('/quotes');
+  };
+
+  CircusRouter.prototype.quotesPage = function(page) {
+    return this.loadQuotes('/quotes/from/' + page);
+  };
+
+  CircusRouter.prototype.quote = function(qid) {
+    var quoteList, view;
+    if (this.app.currentView instanceof QuoteListView) {
+      quoteList = this.app.currentView.model;
+    } else {
+      quoteList = new QuoteList;
+      view = new QuoteListView({
+        model: quoteList
+      });
+      this.app.replaceView(view);
+    }
+    return $.getJSON('/quotes/' + qid).success(function(data) {
+      return quoteList.reset([data]);
+    });
+  };
+
+  CircusRouter.prototype.newQuote = function() {
+    return this.app.replaceView(new NewQuoteView);
+  };
+
+  return CircusRouter;
+
+})(Backbone.Router);
+
+$(document).ready(function() {
+    $('.collapse').collapse();
+    var app = new AppView();
+    window.router = new CircusRouter();
+    router.app = app;
+    Backbone.history.start({pushState: true});
+    return $('#search').on('submit', function(event) {
+        event.preventDefault();
+        return router.loadQuotes('/quotes', $(this).serialize());
+    });
+});

@@ -89,7 +89,7 @@ $maybe msg <- mmsg
 <script #template-quotelist type="text/x-template">
     <div>
         <div .quotes>
-        <a .prev>
+        <a .prev .event-routed>
             <i .icon-white .icon-backward>
-        <a .next>
+        <a .next .event-routed>
             <i .icon-white .icon-forward>
