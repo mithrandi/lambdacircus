@@ -148,6 +148,7 @@ body, button, input, select, textarea {
     .content {
         p {
             font-family: "Monaco", monospace;
+            white-space: pre-wrap;
         }
     }
 }
