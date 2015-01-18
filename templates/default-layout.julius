@@ -378,8 +378,9 @@ $(document).ready(function() {
     window.router = new CircusRouter();
     router.app = app;
     Backbone.history.start({pushState: true});
-    return $('#search').on('submit', function(event) {
+    $('#search').on('submit', function(event) {
         event.preventDefault();
-        return router.loadQuotes('/quotes', $(this).serialize());
+        router.navigate('/quotes');
+        router.loadQuotes('/quotes', $(this).serialize());
     });
 });
