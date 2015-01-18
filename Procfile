@@ -1,1 +1,1 @@
-web: ./dist/build/FlyingCircus/FlyingCircus production -p $PORT
+web: /app/bin/LambdaCircus production -p $PORT

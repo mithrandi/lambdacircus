@@ -8,6 +8,7 @@ module Settings where
 import Prelude
 import Text.Shakespeare.Text (st)
 import Language.Haskell.TH.Syntax
+import Database.Persist.Postgresql (PostgresConf)
 import Yesod.Default.Config
 import Yesod.Default.Util
 import Data.Text (Text)
@@ -19,14 +20,7 @@ import Text.Hamlet
 import Text.Coffee (coffeeFile, coffeeFileReload)
 
 -- | Which Persistent backend this site is using.
-#if DEVELOPMENT
-import Database.Persist.Sqlite (SqliteConf)
-type PersistConf = SqliteConf
-#else
-import Database.Persist.Postgresql (PostgresConf)
 type PersistConf = PostgresConf
-#endif
-
 
 -- Static setting below. Changing these requires a recompile
 
@@ -53,6 +47,10 @@ staticRoot conf = [st|#{appRoot conf}/static|]
 
 -- | Settings for 'widgetFile', such as which template languages to support and
 -- default Hamlet settings.
+--
+-- For more information on modifying behavior, see:
+--
+-- https://github.com/yesodweb/yesod/wiki/Overriding-widgetFile
 widgetFileSettings :: WidgetFileSettings
 widgetFileSettings = def
     { wfsHamletSettings = defaultHamletSettings

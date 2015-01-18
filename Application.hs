@@ -5,31 +5,30 @@ module Application
     , makeFoundation
     ) where
 
-import Import
-import Settings
-import Settings.Development (development)
-import Yesod.Auth
-import Yesod.Default.Config
-import Yesod.Default.Main
-import Yesod.Default.Handlers
-import Network.Wai.Middleware.RequestLogger
+import           Control.Monad.Logger (runLoggingT)
+import           Data.Default (def)
+import qualified Database.Persist
+import           Database.Persist.Postgresql (createPostgresqlPool, pgConnStr, pgPoolSize)
+import           Database.Persist.Sql (runMigration)
+import           Helpers.Heroku (herokuConf)
+import           Import
+import           Network.HTTP.Client.Conduit (newManager)
+import           Network.Wai.Logger (clockDateCacher)
+import           Network.Wai.Middleware.RequestLogger
     ( mkRequestLogger, outputFormat, OutputFormat (..), IPAddrSource (..), destination
     )
 import qualified Network.Wai.Middleware.RequestLogger as RequestLogger
-import qualified Database.Persist
-import Database.Persist.Sql (runMigration)
-import Network.HTTP.Conduit (newManager, conduitManagerSettings)
-import Control.Monad.Logger (runLoggingT)
-import System.Log.FastLogger (newLoggerSet, defaultBufSize)
-import Network.Wai.Logger (clockDateCacher)
-import Data.Default (def)
-import Yesod.Core.Types (loggerSet, Logger (Logger))
-import Helpers.Heroku (herokuConf)
+import           System.Log.FastLogger (newStdoutLoggerSet, defaultBufSize)
+import           Yesod.Auth (getAuth)
+import           Yesod.Core.Types (loggerSet, Logger (Logger))
+import           Yesod.Default.Config
+import           Yesod.Default.Handlers
+import           Yesod.Default.Main
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
-import Handler.Root
-import Handler.Quotes
+import           Handler.Root
+import           Handler.Quotes
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
@@ -40,7 +39,7 @@ mkYesodDispatch "App" resourcesApp
 -- performs initialization and creates a WAI application. This is also the
 -- place to put your migrate statements to have automatic database
 -- migrations handled by Yesod.
-makeApplication :: AppConfig DefaultEnv Extra -> IO Application
+makeApplication :: AppConfig DefaultEnv Extra -> IO (Application, LogFunc)
 makeApplication conf = do
     foundation <- makeFoundation conf
 
@@ -55,40 +54,53 @@ makeApplication conf = do
 
     -- Create the WAI application and apply middlewares
     app <- toWaiAppPlain foundation
-    return $ logWare app
+    let logFunc = messageLoggerSource foundation (appLogger foundation)
+    return (logWare $ defaultMiddlewaresNoLogging app, logFunc)
+
 
 -- | Loads up any necessary settings, creates your foundation datatype, and
 -- performs some initialization.
 makeFoundation :: AppConfig DefaultEnv Extra -> IO App
 makeFoundation conf = do
-    manager <- newManager conduitManagerSettings
+    manager <- newManager
     s <- staticSite
 #if DEVELOPMENT
-    dbconf <- withYamlEnvironment "config/sqlite.yml" (appEnv conf)
+    dbconf <- withYamlEnvironment "config/postgresql.yml" (appEnv conf)
               Database.Persist.loadConfig >>=
               Database.Persist.applyEnv
 #else
     dbconf <- herokuConf
 #endif
-    p <- Database.Persist.createPoolConfig (dbconf :: Settings.PersistConf)
 
-    loggerSet' <- newLoggerSet defaultBufSize Nothing
+    loggerSet' <- newStdoutLoggerSet defaultBufSize
     (getter, _) <- clockDateCacher
 
     let logger = Yesod.Core.Types.Logger loggerSet' getter
-        foundation = App conf s p manager dbconf logger
+        mkFoundation p = App
+            { settings = conf
+            , getStatic = s
+            , connPool = p
+            , httpManager = manager
+            , persistConfig = dbconf
+            , appLogger = logger
+            }
+        tempFoundation = mkFoundation $ error "connPool forced in tempFoundation"
+        logFunc = messageLoggerSource tempFoundation logger
+
+    p <- flip runLoggingT logFunc
+       $ createPostgresqlPool (pgConnStr dbconf) (pgPoolSize dbconf)
+    let foundation = mkFoundation p
 
     -- Perform database migration using our application's logging settings.
-    runLoggingT
+    flip runLoggingT logFunc
         (Database.Persist.runPool dbconf (runMigration migrateAll) p)
-        (messageLoggerSource foundation logger)
 
     return foundation
 
 -- for yesod devel
 getApplicationDev :: IO (Int, Application)
 getApplicationDev =
-    defaultDevelApp loader makeApplication
+    defaultDevelApp loader (fmap fst . makeApplication)
   where
     loader = Yesod.Default.Config.loadConfig (configSettings Development)
         { csParseExtra = parseExtra

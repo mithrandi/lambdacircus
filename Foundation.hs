@@ -1,24 +1,25 @@
 module Foundation where
 
-import Prelude
-import Data.Default (def)
-import Yesod
-import Yesod.Static
-import Yesod.Auth
-import Yesod.Auth.BrowserId (authBrowserId)
-import Yesod.Default.Config
-import Yesod.Default.Util (addStaticContentExternal)
-import Network.HTTP.Conduit (Manager)
-import qualified Settings
-import Settings.Development (development)
+import           Control.Applicative ((<$>))
+import           Data.Default (def)
 import qualified Database.Persist
-import Database.Persist.Sql (SqlPersistT)
-import Settings.StaticFiles
-import Settings (widgetFile, Extra (..))
-import Model
-import Text.Jasmine (minifym)
-import Text.Hamlet (hamletFile)
-import Yesod.Core.Types (Logger)
+import           Database.Persist.Sql (SqlBackend)
+import           Model
+import           Network.HTTP.Client.Conduit (Manager, HasHttpManager (getHttpManager))
+import           Prelude
+import qualified Settings
+import           Settings (widgetFile, Extra (..))
+import           Settings.Development (development)
+import           Settings.StaticFiles
+import           Text.Hamlet (hamletFile)
+import           Text.Jasmine (minifym)
+import           Yesod
+import           Yesod.Auth
+import           Yesod.Auth.BrowserId (authBrowserId)
+import           Yesod.Core.Types (Logger)
+import           Yesod.Default.Config
+import           Yesod.Default.Util (addStaticContentExternal)
+import           Yesod.Static
 
 -- | The site argument for your application. This can be a good place to
 -- keep settings and values requiring initialization before your application
@@ -33,28 +34,19 @@ data App = App
     , appLogger :: Logger
     }
 
+instance HasHttpManager App where
+    getHttpManager = httpManager
+
 -- Set up i18n messages. See the message folder.
 mkMessage "App" "messages" "en"
 
 -- This is where we define all of the routes in our application. For a full
 -- explanation of the syntax, please see:
--- http://www.yesodweb.com/book/handler
+-- http://www.yesodweb.com/book/routing-and-handlers
 --
--- This function does three things:
---
--- * Creates the route datatype AppRoute. Every valid URL in your
---   application can be represented as a value of this type.
--- * Creates the associated type:
---       type instance Route App = AppRoute
--- * Creates the value resourcesApp which contains information on the
---   resources declared below. This is used in Handler.hs by the call to
---   mkYesodDispatch
---
--- What this function does *not* do is create a YesodSite instance for
--- App. Creating that instance requires all of the handler functions
--- for our application to be in scope. However, the handler functions
--- usually require access to the AppRoute datatype. Therefore, we
--- split these actions into two functions and place them in separate files.
+-- Note that this is really half the story; in Application.hs, mkYesodDispatch
+-- generates the rest of the code. Please see the linked documentation for an
+-- explanation for this split.
 mkYesodData "App" $(parseRoutesFile "config/routes")
 
 type Form x = Html -> MForm (HandlerT App IO) (FormResult x, Widget)
@@ -64,13 +56,9 @@ type Form x = Html -> MForm (HandlerT App IO) (FormResult x, Widget)
 instance Yesod App where
     approot = ApprootMaster $ appRoot . settings
 
-    -- Store session data on the client in encrypted cookies,
-    -- default session idle timeout is 120 minutes
-    makeSessionBackend _ = fmap Just $ defaultClientSessionBackend
-        (120 * 60) -- 120 minutes
-        "config/client_session_key.aes"
+    makeSessionBackend _ = Just <$> envClientSessionBackend 120 "LAMBDACIRCUS_CLIENT_SESSION_KEY"
 
-    isAuthorized (QuoteDownR _) True = do
+    isAuthorized (QuoteR _) True = do
         mu <- maybeAuth
         case mu of
             Nothing -> return AuthenticationRequired
@@ -103,7 +91,7 @@ instance Yesod App where
                 js_underscore_min_js,
                 js_backbone_min_js])
             $(widgetFile "default-layout")
-        giveUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
+        withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
     -- This is done to provide an optimization for serving static files from
     -- a separate domain. Please see the staticRoot setting in Settings.hs
@@ -118,7 +106,13 @@ instance Yesod App where
     -- and names them based on a hash of their content. This allows
     -- expiration dates to be set far in the future without worry of
     -- users receiving stale content.
-    addStaticContent = addStaticContentExternal minifym base64md5 Settings.staticDir (StaticR . flip StaticRoute [])
+    addStaticContent =
+        addStaticContentExternal minifym genFileName Settings.staticDir (StaticR . flip StaticRoute [])
+      where
+        -- Generate a unique filename based on the content itself
+        genFileName lbs
+            | development = "autogen-" ++ base64md5 lbs
+            | otherwise   = base64md5 lbs
 
     -- Place Javascript at bottom of the body tag so the rest of the page loads first
     jsLoader _ = BottomOfBody
@@ -132,7 +126,7 @@ instance Yesod App where
 
 -- How to run database actions.
 instance YesodPersist App where
-    type YesodPersistBackend App = SqlPersistT
+    type YesodPersistBackend App = SqlBackend
     runDB = defaultRunDB persistConfig connPool
 
 instance YesodAuth App where
@@ -154,6 +148,8 @@ instance YesodAuth App where
     authPlugins _ = [authBrowserId def]
 
     authHttpManager = httpManager
+
+instance YesodAuthPersist App
 
 -- This instance is required to use forms. You can modify renderMessage to
 -- achieve customized and internationalized form validation messages.

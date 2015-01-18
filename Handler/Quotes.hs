@@ -1,15 +1,16 @@
 module Handler.Quotes where
 
-import Import
-import Data.Time (getCurrentTime, formatTime)
-import System.Locale (defaultTimeLocale)
+import           Control.Monad (guard)
+import           Data.Aeson.TH (deriveJSON, defaultOptions)
+import           Data.Aeson.Types (Pair)
 import qualified Data.HashMap.Strict as H
-import Data.Aeson.Types (Pair)
-import Data.Aeson.TH (deriveJSON, defaultOptions)
-import Network.HTTP.Types (status204)
-import Yesod.Auth (maybeAuth)
-import Data.Maybe (catMaybes)
-import Control.Monad (guard)
+import           Data.Maybe (catMaybes)
+import           Data.Time (getCurrentTime, formatTime)
+import           Database.Persist.Sql (fromSqlKey, toSqlKey)
+import           Import
+import           Network.HTTP.Types (status204)
+import           System.Locale (defaultTimeLocale)
+import           Yesod.Auth (maybeAuth)
 
 
 quoteWidget :: QuoteId -> Quote -> Widget
@@ -33,15 +34,15 @@ renderQuotes quotes prev next =
 
 getDefQuotesR :: Handler TypedContent
 getDefQuotesR = do
-    Just (Entity (Key (PersistInt64 qid)) _) <- runDB $ selectFirst [] [Desc QuoteAdded, LimitTo 1]
-    redirect $ QuotesR (fromIntegral qid)
+    Just entity <- runDB $ selectFirst [] [Desc QuoteAdded, LimitTo 1]
+    redirect $ QuotesR (fromIntegral . fromSqlKey . entityKey $ entity)
 
 
 getQuotesR :: Integer -> Handler TypedContent
 getQuotesR from = do
     let limit = 10
     quotes <- runDB $ selectList
-        [QuoteId <=. Key (PersistInt64 (fromInteger from))]
+        [QuoteId <=. toSqlKey (fromInteger from)]
         [Desc QuoteAdded, LimitTo limit]
     r <- getUrlRender
     let prev = Just . r . QuotesR $ from + limit
@@ -129,7 +130,7 @@ $(deriveJSON defaultOptions ''PartialQuote)
 
 postNewQuoteR :: Handler Value
 postNewQuoteR = do
-    value <- parseJsonBody_
+    value <- requireJsonBody
     created <- liftIO getCurrentTime
     let q = Quote {
         quoteContent = (content value),

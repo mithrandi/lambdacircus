@@ -12,5 +12,5 @@ import Import
 getRootR :: Handler Html
 getRootR = do
     defaultLayout $ do
-        setTitle "FlyingCircus homepage"
+        setTitle "LambdaCircus homepage"
         $(widgetFile "homepage")

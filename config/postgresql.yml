@@ -1,0 +1,33 @@
+# NOTE: These settings can be overridden by environment variables as well, in
+# particular:
+#
+#    PGHOST
+#    PGPORT
+#    PGUSER
+#    PGPASS
+#    PGDATABASE
+
+Default: &defaults
+  user: lambdacircus
+  password: lambdacircus
+  host: localhost
+  port: 5432
+  database: lambdacircus
+  poolsize: 10
+
+Development:
+  <<: *defaults
+
+Testing:
+  database: lambdacircus_test
+  <<: *defaults
+
+Staging:
+  database: lambdacircus_staging
+  poolsize: 100
+  <<: *defaults
+
+Production:
+  database: lambdacircus_production
+  poolsize: 100
+  <<: *defaults
