@@ -145,7 +145,8 @@ class NewQuoteView extends Backbone.View
             dataType: 'json',
             contentType: 'application/json'
         d.done (data) ->
-            router.navigate data.self, trigger: true
+            history.pushState {}, '', data.self
+            Backbone.history.loadUrl()
 
 
 class AppView extends Backbone.View
