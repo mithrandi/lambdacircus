@@ -8,8 +8,6 @@ before_install:
   - cabal update
   - cabal install 'happy >= 1.19.4'
   - cabal install 'alex >= 3.1.3'
-script:
-  - cabal configure && cabal build --upgrade-dependencies
 #deploy:
 #  provider: heroku
 #  api_key:
