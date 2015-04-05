@@ -1,17 +1,15 @@
 module Handler.Quotes where
 
-import           Control.Lens ((^?!))
-import           Control.Monad (guard)
-import           Data.Aeson.Lens (key, _String)
-import           Data.Aeson.Types (Pair)
-import qualified Data.HashMap.Strict as H
-import           Data.Maybe (catMaybes)
-import           Data.Time (getCurrentTime, formatTime)
-import           Database.Persist.Sql (fromSqlKey, toSqlKey, rawSql)
-import           Import
-import           Network.HTTP.Types (status204)
-import           System.Locale (defaultTimeLocale)
-import           Yesod.Auth (maybeAuth)
+import Control.Lens ((^?!), (?~), (&), Traversal', at, (#))
+import Control.Monad (guard)
+import Data.Aeson.Lens (key, _String, AsValue(), _Object, _Bool, _JSON)
+import Data.Maybe (catMaybes)
+import Data.Time (getCurrentTime, formatTime)
+import Database.Persist.Sql (fromSqlKey, toSqlKey, rawSql)
+import Import
+import Network.HTTP.Types (status204)
+import System.Locale (defaultTimeLocale)
+import Yesod.Auth (maybeAuth)
 
 
 quoteWidget :: QuoteId -> Quote -> Widget
@@ -72,10 +70,8 @@ getTopQuotesR page = do
     renderQuotes quotes prev next
 
 
-jsonWithExtras :: (ToJSON a) => [Pair] -> a -> Value
-jsonWithExtras extras entity = case toJSON entity of
-    Object o -> Object $ foldl (\m (k, v) -> H.insert k v m) o extras
-    _ -> error "Unexpected JSON representation of entity"
+key' :: AsValue t => Text -> Traversal' t (Maybe Value)
+key' i = _Object . at i
 
 
 quoteJson :: (QuoteId, Quote) -> Handler Value
@@ -85,12 +81,12 @@ quoteJson (qid, quote) = do
             Nothing -> False
             Just (Entity _ user) -> userModerator user
     r <- getUrlRender
-    return $ jsonWithExtras
-        ["id" .= qid,
-         "voteUp" .= r (QuoteUpR qid),
-         "voteDown" .= r (QuoteDownR qid),
-         "deletable" .= deletable,
-         "self" .= r (QuoteR qid)] quote
+    return $ toJSON quote
+      & key' "id"        ?~ _JSON # qid
+      & key' "voteUp"    ?~ _String # r (QuoteUpR qid)
+      & key' "voteDown"  ?~ _String # r (QuoteDownR qid)
+      & key' "deletable" ?~ _Bool # deletable
+      & key' "self"      ?~ _String # r (QuoteR qid)
 
 
 getQuoteR :: QuoteId -> Handler TypedContent

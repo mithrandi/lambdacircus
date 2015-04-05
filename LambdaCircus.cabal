@@ -54,6 +54,7 @@ library
                 EmptyDataDecls
                 NoMonomorphismRestriction
                 ViewPatterns
+                RankNTypes
 
     build-depends: base
                  , yesod
