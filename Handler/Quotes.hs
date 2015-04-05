@@ -1,7 +1,8 @@
 module Handler.Quotes where
 
+import           Control.Lens ((^?!))
 import           Control.Monad (guard)
-import           Data.Aeson.TH (deriveJSON, defaultOptions)
+import           Data.Aeson.Lens (key, _String)
 import           Data.Aeson.Types (Pair)
 import qualified Data.HashMap.Strict as H
 import           Data.Maybe (catMaybes)
@@ -131,19 +132,13 @@ getNewQuoteR = defaultLayout $ do
     setTitle "New quote"
     $(widgetFile "newquote")
 
-data PartialQuote = PartialQuote {
-    content :: Text
-    }
-
-$(deriveJSON defaultOptions ''PartialQuote)
-
 
 postNewQuoteR :: Handler Value
 postNewQuoteR = do
     value <- requireJsonBody
     created <- liftIO getCurrentTime
     let q = Quote {
-        quoteContent = (content value),
+        quoteContent = (value :: Value) ^?! key "content" . _String,
         quoteAdded = created,
         quoteVotesFor = 0,
         quoteVotesAgainst = 0,

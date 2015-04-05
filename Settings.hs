@@ -17,7 +17,6 @@ import Control.Applicative
 import Settings.Development
 import Data.Default (def)
 import Text.Hamlet
-import Text.Coffee (coffeeFile, coffeeFileReload)
 
 -- | Which Persistent backend this site is using.
 type PersistConf = PostgresConf
@@ -56,10 +55,7 @@ widgetFileSettings = def
     { wfsHamletSettings = defaultHamletSettings
         { hamletNewlines = AlwaysNewlines
         }
-    --, wfsLanguages = (coffeeTL:) . defaultTemplateLanguages
     }
-    where
-        coffeeTL = TemplateLanguage True "coffee" coffeeFile coffeeFileReload
 
 -- The rest of this file contains settings which rarely need changing by a
 -- user.
