@@ -1,6 +1,7 @@
 module Foundation where
 
 import           Control.Applicative ((<$>))
+import           Control.Lens ((^.))
 import           Data.Default (def)
 import qualified Database.Persist
 import           Database.Persist.Sql (SqlBackend)
@@ -63,8 +64,8 @@ instance Yesod App where
         case mu of
             Nothing -> return AuthenticationRequired
             Just (Entity _ user)
-                | userModerator user -> return Authorized
-                | otherwise          -> return $ Unauthorized "Must be a moderator"
+                | user ^. userModerator -> return Authorized
+                | otherwise             -> return $ Unauthorized "Must be a moderator"
     isAuthorized _ _ = return Authorized
 
     defaultLayout widget = do

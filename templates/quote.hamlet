@@ -4,8 +4,8 @@
             <a rel="bookmark" href="@{QuoteR quoteId}">
                 <h1>#{toPathPiece quoteId}
             <div #rating .rating>
-                <span .votes-for>+#{show $ quoteRating quote}</span> / 
-                <span .votes-against>-#{show $ quoteVotes quote}
-            <div .timestamp>#{formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" (quoteAdded quote)}
+                <span .votes-for>+#{show $ view quoteRating quote}</span> / 
+                <span .votes-against>-#{show $ view quoteVotes quote}
+            <div .timestamp>#{formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" (view quoteAdded quote)}
         <div .span9 .content>
-            <p>#{quoteContent quote}
+            <p>#{view quoteContent quote}

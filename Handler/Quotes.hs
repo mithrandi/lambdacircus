@@ -1,6 +1,6 @@
 module Handler.Quotes where
 
-import Control.Lens ((^?!), (?~), (&), Traversal', at, (#))
+import Control.Lens hiding ((.=))
 import Control.Monad (guard)
 import Data.Aeson.Lens (key, _String, AsValue(), _Object, _Bool, _JSON)
 import Data.Maybe (catMaybes)
@@ -45,14 +45,14 @@ getDefQuotesR = do
 
 
 getQuotesR :: Integer -> Handler TypedContent
-getQuotesR from = do
+getQuotesR fromId = do
     let limit = 10
     quotes <- runDB $ selectList
-        [QuoteId <=. toSqlKey (fromInteger from)]
+        [QuoteId <=. toSqlKey (fromInteger fromId)]
         [Desc QuoteId, LimitTo limit]
     r <- getUrlRender
-    let prev = Just . r . QuotesR $ from + limit
-        next = guard (from > 1) >> (Just . r . QuotesR) (max (from - limit) 1)
+    let prev = Just . r . QuotesR $ fromId + limit
+        next = guard (fromId > 1) >> (Just . r . QuotesR) (max (fromId - limit) 1)
     renderQuotes quotes prev next
 
 
@@ -77,9 +77,7 @@ key' i = _Object . at i
 quoteJson :: (QuoteId, Quote) -> Handler Value
 quoteJson (qid, quote) = do
     mu <- maybeAuth
-    let deletable = case mu of
-            Nothing -> False
-            Just (Entity _ user) -> userModerator user
+    let deletable = andOf (_Just . to entityVal . userModerator) $ mu
     r <- getUrlRender
     return $ toJSON quote
       & key' "id"        ?~ _JSON # qid
@@ -134,11 +132,11 @@ postNewQuoteR = do
     value <- requireJsonBody
     created <- liftIO getCurrentTime
     let q = Quote {
-        quoteContent = (value :: Value) ^?! key "content" . _String,
-        quoteAdded = created,
-        quoteVotesFor = 0,
-        quoteVotesAgainst = 0,
-        quoteRating = 0,
-        quoteVotes = 0}
+        _quoteContent = (value :: Value) ^?! key "content" . _String,
+        _quoteAdded = created,
+        _quoteVotesFor = 0,
+        _quoteVotesAgainst = 0,
+        _quoteRating = 0,
+        _quoteVotes = 0}
     qid <- runDB $ insert q
     quoteJson (qid, q)
