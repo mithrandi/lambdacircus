@@ -76,8 +76,7 @@ key' i = _Object . at i
 
 quoteJson :: (QuoteId, Quote) -> Handler Value
 quoteJson (qid, quote) = do
-    mu <- maybeAuth
-    let deletable = andOf (_Just . to entityVal . userModerator) $ mu
+    deletable <- andOf (_Just . to entityVal . userModerator) <$> maybeAuth
     r <- getUrlRender
     return $ toJSON quote
       & key' "id"        ?~ _JSON # qid
