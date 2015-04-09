@@ -8,7 +8,7 @@ import Data.Monoid ((<>))
 import Data.String (fromString)
 import Prelude (($), (.), show, String)
 import Text.Blaze.Html5
-import Text.Blaze.Html5.Attributes hiding (span, data_, form)
+import Text.Blaze.Html5.Attributes hiding (span, form)
 import Text.Blaze.Internal (AttributeValue, attribute)
 import Types
 
@@ -90,8 +90,8 @@ renderQuote quote = do
   div ! class_ "quote row-fluid" $ do
     div ! class_ "span3 info" $ do
       a ! rel "bookmark"
-        ! href "#"
-        $ h1 (quote^.quoteId._Html)
+        ! href "#" $
+        h1 (quote^.quoteId._Html)
       div ! class_ "rating" $ do
         span ! class_ "votes-for" $
           quote^.quoteVotesFor._Html
