@@ -38,7 +38,7 @@ mapFromValues f = foldr (flip M.insert <*> f) M.empty
 applyCircusA :: CircusA -> ApplyActionM CircusS [CircusR] ()
 applyCircusA action = case action of
   UpdateQuote q -> do
-    csQuotes . ix (q ^. quoteId) .= q
+    csQuotes . ix (q^.quoteId) .= q
   ReplaceQuotes qs -> do
     csQuotes .= mapFromValues (view quoteId) qs
 
@@ -49,13 +49,16 @@ renderBody :: CircusS -> H.Html CircusA
 renderBody state = do
   H.div $ do
     H.div H.! A.class_ "quotes" $
-      foldMap renderQuote (state ^. csQuotes)
+      foldMap renderQuote (state^.csQuotes)
     H.a H.! A.class_ "prev" $
       H.i H.! A.class_ "icon-white icon-backward" $
         ""
     H.a H.! A.class_ "next" $
       H.i H.! A.class_ "icon-white icon-forward" $
         ""
+
+_Html :: (H.ToMarkup a) => Getter a (H.Html b)
+_Html = to H.toHtml
 
 renderQuote :: Quote -> H.Html CircusA
 renderQuote quote = do
@@ -64,17 +67,17 @@ renderQuote quote = do
       H.a
         H.! A.rel "bookmark"
         H.! A.href "#"
-        $ H.h1 (H.toHtml $ quote ^. quoteId)
+        $ H.h1 (quote^.quoteId._Html)
       H.div H.! A.class_ "rating" $ do
         H.span H.! A.class_ "votes-for" $
-          (H.toHtml $ quote ^. quoteVotesFor)
+          quote^.quoteVotesFor._Html
         void " / "
         H.span H.! A.class_ "votes-against" $
-          (H.toHtml $ quote ^. quoteVotesAgainst)
+          quote^.quoteVotesAgainst._Html
       H.div H.! A.class_ "timestamp" $
-        (H.toHtml . show $ quote ^. quoteAdded)
+        quote^.quoteAdded.to show._Html
     H.div H.! A.class_ "span9 content" $
-      H.p (H.toHtml $ quote ^. quoteContent)
+      H.p (quote^.quoteContent._Html)
 
 handle :: (CircusA -> IO ()) -> CircusR -> IO ()
 handle chan req =
