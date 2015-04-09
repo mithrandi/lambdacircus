@@ -90,7 +90,8 @@ instance Yesod App where
                 js_prefixfree_min_js,
                 js_xdate_js,
                 js_underscore_min_js,
-                js_backbone_min_js]
+                js_backbone_min_js,
+                js_client_js]
             $(widgetFile "default-layout")
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
