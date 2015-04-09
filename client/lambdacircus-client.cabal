@@ -18,8 +18,19 @@ cabal-version:       >=1.10
 
 executable lambdacircus-client
   main-is:             Main.hs
-  -- other-modules:       
-  -- other-extensions:    
+  default-extensions:  TemplateHaskell
+                     , OverloadedStrings
+                     , OverloadedLists
+  ghcjs-options:       -O2
   build-depends:       base >=4.7 && <4.8
+                     , blaze-react
+                     , containers
+                     , text
+                     , thyme
+                     , aeson
+                     , lens
+                     , lens-aeson
+                     , ghcjs-base
+                     , bytestring
   -- hs-source-dirs:      
   default-language:    Haskell2010
