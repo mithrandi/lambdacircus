@@ -62,7 +62,14 @@ renderHeader = do
                 input ! type_ "text"
                       ! name "matches"
                       ! placeholder "Search"
-                
+
+renderFooter :: Html CircusA
+renderFooter = do
+  div ! class_ "footer" $
+    p $ do
+      void "“Magnifying Glass” symbol from "
+      a ! href "http://thenounproject.com/" $ "The Noun Project"
+      void " collection."
 
 renderBody :: CircusS -> Html CircusA
 renderBody state = do
@@ -76,11 +83,7 @@ renderBody state = do
     a ! class_ "next" $
       i ! class_ "icon-white icon-forward" $
         ""
-    div ! class_ "footer" $
-      p $ do
-        void "“Magnifying Glass” symbol from "
-        a ! href "http://thenounproject.com/" $ "The Noun Project"
-        void " collection."
+    renderFooter
 
 _Html :: (ToMarkup a) => Getter a (Html b)
 _Html = to toHtml
