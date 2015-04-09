@@ -56,12 +56,12 @@ foreign import javascript unsafe
   xhrSetResponseType :: JSRef XMLHttpRequest -> JSString -> IO ()
 
 foreign import javascript unsafe
- "($1).setRequestHeader(($2), ($3));"
+  "($1).setRequestHeader(($2), ($3));"
   xhrSetRequestHeader :: JSRef XMLHttpRequest -> JSString -> JSString -> IO ()
 
 foreign import javascript unsafe
- "console.log('%o', ($1));"
- debugLog :: JSRef a -> IO ()
+  "document.body.innerHTML = '';"
+  clearBody :: IO ()
 
 mkRequest :: String
              -> (JSRef XMLHttpRequest -> IO ())

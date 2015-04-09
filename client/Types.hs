@@ -45,9 +45,10 @@ data CircusS = CSQuotes
                } deriving (Show, Eq)
 
 makeLenses ''CircusS
+makePrisms ''CircusS
 
 data CircusA = UpdateQuote Quote
-             | ReplaceQuotes [Quote]
+             | ReplaceQuotes QuoteList
              deriving (Show, Eq)
 
 data CircusR = FetchQuotes { url :: Text }
