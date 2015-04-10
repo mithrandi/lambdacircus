@@ -2,23 +2,28 @@ module Render where
 
 import Blaze.ReactJS.Base (WindowState(..))
 import Control.Lens
-import Control.Monad (void)
 import Data.Foldable (foldMap)
+import Data.Maybe (Maybe(..))
 import Data.Monoid ((<>))
 import Data.String (fromString)
+import Control.Applicative ((<$>))
 import Prelude (($), (.), show, String)
 import Text.Blaze.Html5
 import Text.Blaze.Html5.Attributes hiding (span, form)
-import Text.Blaze.Internal (AttributeValue, attribute)
+import Text.Blaze.Internal (Attributable)
 import Types
 
-dataToggle :: AttributeValue -> Attribute ey
-dataToggle = attribute "data-toggle" " data-toggle=\""
-{-# INLINE dataToggle #-}
+_html :: (ToMarkup a) => Getter a (Html b)
+_html = to toHtml
 
-dataTarget :: AttributeValue -> Attribute ey
-dataTarget = attribute "data-target" " data-target=\""
-{-# INLINE dataTarget #-}
+_value :: (ToValue a) => Getter a AttributeValue
+_value = to toValue
+
+-- Version of (!?) using Maybe instead of a Bool flag
+(?) :: Attributable h ev => h -> Maybe (Attribute ev) -> h
+(?) h Nothing  = h
+(?) h (Just a) = h ! a
+{-# INLINE (?) #-}
 
 render :: CircusS -> WindowState CircusA
 render state = WindowState (renderBody state) ""
@@ -30,8 +35,8 @@ renderHeader = do
       div ! class_ "navbar-inner" $
         div ! class_ "container" $ do
           a ! class_ "btn btn-navbar"
-            ! dataToggle "collapse"
-            ! dataTarget ".nav-collapse" $ do
+            ! dataAttribute "toggle" "collapse"
+            ! dataAttribute "target" ".nav-collapse" $ do
               span ! class_ "icon-white icon-bar" $ ""
               span ! class_ "icon-white icon-bar" $ ""
               span ! class_ "icon-white icon-bar" $ ""
@@ -41,21 +46,21 @@ renderHeader = do
           div ! class_ "nav-collapse" $
             ul ! class_ "nav pull-right" $ do
               li $
-                a ! href "" $
-                  i ! class_ "icon-white icon-home" $
-                    " Overview"
+                a ! href "/" $ do
+                  i ! class_ "icon-white icon-home" $ ""
+                  " Overview"
               li $
-                a ! href "" $
-                  i ! class_ "icon-white icon-comment" $
-                    " Top"
+                a ! href "/top" $ do
+                  i ! class_ "icon-white icon-comment" $ ""
+                  " Top"
               li $
-                a ! href "" $
-                  i ! class_ "icon-white icon-comment" $
-                    " Browse"
+                a ! href "/quotes" $ do
+                  i ! class_ "icon-white icon-comment" $ ""
+                  " Browse"
               li $
-                a ! href "" $
-                  i ! class_ "icon-white icon-comment" $
-                    " New Quote"
+                a ! href "/newQuote" $ do
+                  i ! class_ "icon-white icon-comment" $ ""
+                  " New Quote"
           div ! class_ "search" $
             div ! class_ "icon" $
               form ! id "search" $
@@ -63,30 +68,34 @@ renderHeader = do
                       ! name "matches"
                       ! placeholder "Search"
 
-renderFooter :: Html CircusA
+renderFooter :: Html a
 renderFooter = do
   div ! class_ "footer" $
     p $ do
-      void "“Magnifying Glass” symbol from "
+      "“Magnifying Glass” symbol from "
       a ! href "http://thenounproject.com/" $ "The Noun Project"
-      void " collection."
+      " collection."
+
+renderPage :: CircusS -> Html CircusA
+renderPage state
+  | has _CSQuotes state = do
+      div ! class_ "quotes" $ do
+        foldMapOf (csQuotes.qlQuotes.folded) renderQuote state
+        a ! class_ "prev"
+          ? (href <$> state^?csQuotes.qlPrev._Just._value) $
+          i ! class_ "icon-white icon-backward" $
+            ""
+        a ! class_ "next"
+          ? (href <$> state^?csQuotes.qlNext._Just._value) $
+          i ! class_ "icon-white icon-forward" $
+            ""
 
 renderBody :: CircusS -> Html CircusA
 renderBody state = do
   renderHeader
   div ! class_ "page container" $ do
-    div ! class_ "quotes" $
-      foldMap renderQuote (state^.csQuotes)
-    a ! class_ "prev" $
-      i ! class_ "icon-white icon-backward" $
-        ""
-    a ! class_ "next" $
-      i ! class_ "icon-white icon-forward" $
-        ""
+    renderPage state
     renderFooter
-
-_Html :: (ToMarkup a) => Getter a (Html b)
-_Html = to toHtml
 
 renderQuote :: Quote -> Html CircusA
 renderQuote quote = do
@@ -94,14 +103,14 @@ renderQuote quote = do
     div ! class_ "span3 info" $ do
       a ! rel "bookmark"
         ! href "#" $
-        h1 (quote^.quoteId._Html)
+        h1 (quote^.quoteId._html)
       div ! class_ "rating" $ do
         span ! class_ "votes-for" $
-          quote^.quoteVotesFor._Html
-        void " / "
+          quote^.quoteVotesFor._html
+        " / "
         span ! class_ "votes-against" $
-          quote^.quoteVotesAgainst._Html
+          quote^.quoteVotesAgainst._html
       div ! class_ "timestamp" $
-        quote^.quoteAdded.to show._Html
+        quote^.quoteAdded.to show._html
     div ! class_ "span9 content" $
-      p (quote^.quoteContent._Html)
+      p (quote^.quoteContent._html)

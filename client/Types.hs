@@ -29,8 +29,8 @@ $(deriveJSON
 makeLenses ''Quote
 
 data QuoteList = QuoteList
-                 { _qlPrev   :: !Text
-                 , _qlNext   :: !Text
+                 { _qlPrev   :: Maybe Text
+                 , _qlNext   :: Maybe Text
                  , _qlQuotes :: [Quote]
                  } deriving (Show, Eq)
 
@@ -39,9 +39,10 @@ $(deriveJSON
   { fieldLabelModifier = over _head toLower . view (prefixed "_ql") }
   ''QuoteList)
 makeLenses ''QuoteList
+makePrisms ''QuoteList
 
 data CircusS = CSQuotes
-               { _csQuotes :: !(Seq Quote)
+               { _csQuotes :: !QuoteList
                } deriving (Show, Eq)
 
 makeLenses ''CircusS
@@ -52,3 +53,4 @@ data CircusA = UpdateQuote Quote
              deriving (Show, Eq)
 
 data CircusR = FetchQuotes { url :: Text }
+             | FetchQuote { url :: Text }

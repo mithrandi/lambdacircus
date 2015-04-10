@@ -28,16 +28,16 @@ app = App
 
 initialState :: CircusS
 initialState = CSQuotes
-               { _csQuotes = []
+               { _csQuotes = QuoteList Nothing Nothing []
                }
 
 applyCircusA :: CircusA -> ApplyActionM CircusS [CircusR] ()
 applyCircusA action = case action of
   UpdateQuote q -> do
     let qid = q^.quoteId
-    csQuotes . traversed . filtered ((== qid) . view quoteId) .= q
+    csQuotes . qlQuotes . traversed . filtered ((== qid) . view quoteId) .= q
   ReplaceQuotes ql -> do
-    csQuotes .= ql^.qlQuotes.to Seq.fromList
+    csQuotes .= ql
 
 handle :: (CircusA -> IO ()) -> CircusR -> IO ()
 handle chan req =
@@ -45,3 +45,6 @@ handle chan req =
    FetchQuotes url -> do
      quoteList <- fetchJSON url
      chan (ReplaceQuotes quoteList)
+   FetchQuote url -> do
+     quote <- fetchJSON url
+     chan (ReplaceQuotes (QuoteList Nothing Nothing [quote]))
