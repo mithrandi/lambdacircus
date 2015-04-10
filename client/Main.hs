@@ -2,12 +2,9 @@ module Main where
 
 import           Blaze.Core (App(..), ApplyActionM, runApplyActionM, submitRequest)
 import           Blaze.ReactJS.Run (runApp')
-import           Control.Applicative ((<$>), (<*>))
+import           Control.Applicative ((<$>))
 import           Control.Lens
-import           Data.Aeson.Lens (key, _JSON, _Array)
-import           Data.Function (on)
 import qualified Data.Map.Strict as M
-import qualified Data.Sequence as Seq
 
 import           Render (render)
 import           Types

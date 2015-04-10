@@ -7,9 +7,8 @@ module XHR where
 import           Control.Applicative ((<$>))
 import           Control.Concurrent.MVar (newEmptyMVar, putMVar, takeMVar)
 import           Control.Monad ((<=<))
-import           Data.Aeson (FromJSON, decodeStrict, Value)
+import           Data.Aeson (FromJSON, decodeStrict)
 import           Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as B8
 import           Data.Foldable (for_)
 import           Data.String
 import qualified Data.Text as T
