@@ -21,6 +21,7 @@ executable lambdacircus-client
   default-extensions:  TemplateHaskell
                      , OverloadedStrings
                      , OverloadedLists
+                     , TupleSections
   ghcjs-options:       -O2
   build-depends:       base >=4.7 && <4.8
                      , blaze-react

@@ -7,11 +7,11 @@ import           Control.Monad (when)
 import           Data.Foldable (foldMap)
 import           Data.Monoid ((<>))
 import           Data.String (fromString)
-import           Prelude (($), (.), show, String, Maybe(..))
+import           Prelude (($), (.), show, String, Maybe(..), Bool)
 import qualified Text.Blaze.Event as E
 import           Text.Blaze.Html5 hiding (title)
-import           Text.Blaze.Html5.Attributes hiding (span, form)
-import           Text.Blaze.Internal (Attributable)
+import           Text.Blaze.Html5.Attributes hiding (span, form, disabled)
+import           Text.Blaze.Internal (Attributable, boolAttribute)
 import           Types
 
 _html :: (ToMarkup a) => Getter a (Html b)
@@ -19,6 +19,10 @@ _html = to toHtml
 
 _value :: (ToValue a) => Getter a AttributeValue
 _value = to toValue
+
+disabled :: Bool -> Attribute ev
+disabled = boolAttribute "disabled"
+{-# INLINE disabled #-}
 
 -- Version of (!?) using Maybe instead of a Bool flag
 (?) :: Attributable h ev => h -> Maybe (Attribute ev) -> h
@@ -78,15 +82,17 @@ renderFooter = do
       " collection."
 
 renderPage :: CircusS -> Html CircusA
-renderPage state@(CSQuotes _) = do
+renderPage state
+  | has _CSQuotes state = do
       div ! class_ "quotes" $ do
-        foldMapOf (csQuotes.qlQuotes.folded) renderQuote state
+        foldMapOf (csQuotes.qlQuotes.folded.to withQuoteState) renderQuote state
         a ! class_ "prev"
-          ? (href <$> state^?csQuotes.qlPrev._Just._value) $
+          ? (href <$> state ^? csQuotes.qlPrev._Just._value) $
           i ! class_ "icon-white icon-backward" $ ""
         a ! class_ "next"
-          ? (href <$> state^?csQuotes.qlNext._Just._value) $
+          ? (href <$> state ^? csQuotes.qlNext._Just._value) $
           i ! class_ "icon-white icon-forward" $ ""
+  where withQuoteState q = (state^?!csQuoteStates.ix (q^.quoteId).to (q ,))
 
 renderBody :: CircusS -> Html CircusA
 renderBody state = do
@@ -95,8 +101,8 @@ renderBody state = do
     renderPage state
     renderFooter
 
-renderQuote :: Quote -> Html CircusA
-renderQuote quote = do
+renderQuote :: (Quote, QuoteState) -> Html CircusA
+renderQuote (quote, qs) = do
   div ! class_ "quote row-fluid" $ do
     div ! class_ "span3 info" $ do
       a ! rel "bookmark"
@@ -111,17 +117,22 @@ renderQuote quote = do
       div ! class_ "timestamp" $
         quote^.quoteAdded.to show._html
       div ! class_ "controls" $ do
-        button ! class_ "btn btn-mini btn-success"
-               ! title "Vote for"
-               ! E.onClick' (VoteA $ quote^.quoteVoteUp) $
-          i ! class_ "icon-white icon-arrow-up" $ ""
-        button ! class_ "btn btn-mini btn-danger"
-               ! title "Vote against"
-               ! E.onClick' (VoteA $ quote^.quoteVoteDown) $
-          i ! class_ "icon-white icon-arrow-down" $ ""
-        when (quote^.quoteDeletable) $
-           button ! class_ "btn btn-mini"
-                  ! title "Remove" $
-             i ! class_ "icon-white icon-remove" $ ""
+        case qs of
+          QSVoted -> i ! class_ "voted icon-white icon-ok" $ ""
+          _       -> do
+            button ! class_ "btn btn-mini btn-success"
+                   ! title "Vote for"
+                   ! disabled (has _QSVoting qs)
+                   ! E.onClick' (VoteA (quote^.quoteId) (quote^.quoteVoteUp)) $
+              i ! class_ "icon-white icon-arrow-up" $ ""
+            button ! class_ "btn btn-mini btn-danger"
+                   ! title "Vote against"
+                   ! disabled (has _QSVoting qs)
+                   ! E.onClick' (VoteA (quote^.quoteId) (quote^.quoteVoteDown)) $
+              i ! class_ "icon-white icon-arrow-down" $ ""
+            when (quote^.quoteDeletable) $
+              button ! class_ "btn btn-mini"
+                     ! title "Remove" $
+                i ! class_ "icon-white icon-remove" $ ""
     div ! class_ "span9 content" $
       p (quote^.quoteContent._html)

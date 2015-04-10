@@ -137,7 +137,6 @@ body, button, input, select, textarea {
             }
 
             .voted {
-                display: none;
                 position: absolute;
                 top: 1.25em;
                 left: 0.3em;
