@@ -5,7 +5,8 @@ import           Blaze.ReactJS.Run (runApp')
 import           Control.Applicative ((<$>), (<*>))
 import           Control.Lens
 import           Data.Aeson.Lens (key, _JSON, _Array)
-import qualified Data.Map.Strict as M
+import           Data.Function (on)
+import qualified Data.Sequence as Seq
 
 import           Render (render)
 import           Types
@@ -30,15 +31,13 @@ initialState = CSQuotes
                { _csQuotes = []
                }
 
-mapFromValues :: Ord k => (v -> k) -> [v] -> M.Map k v
-mapFromValues f = foldr (flip M.insert <*> f) M.empty
-
 applyCircusA :: CircusA -> ApplyActionM CircusS [CircusR] ()
 applyCircusA action = case action of
   UpdateQuote q -> do
-    csQuotes . ix (q^.quoteId) .= q
+    let qid = q^.quoteId
+    csQuotes . traversed . filtered ((== qid) . view quoteId) .= q
   ReplaceQuotes ql -> do
-    csQuotes .= mapFromValues (view quoteId) (ql^.qlQuotes)
+    csQuotes .= ql^.qlQuotes.to Seq.fromList
 
 handle :: (CircusA -> IO ()) -> CircusR -> IO ()
 handle chan req =

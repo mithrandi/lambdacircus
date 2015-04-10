@@ -1,14 +1,14 @@
 module Types where
 
-import           Control.Lens
-import           Data.Aeson.TH (deriveJSON, defaultOptions, Options(..))
-import           Data.Char (toLower)
-import           Data.Int (Int64)
-import           Data.List.Lens (prefixed)
-import qualified Data.Map.Strict as M
-import           Data.Text (Text)
-import           Data.Thyme (UTCTime)
-import           Data.Thyme.Format.Aeson ()
+import Control.Lens
+import Data.Aeson.TH (deriveJSON, defaultOptions, Options(..))
+import Data.Char (toLower)
+import Data.Int (Int64)
+import Data.List.Lens (prefixed)
+import Data.Sequence (Seq)
+import Data.Text (Text)
+import Data.Thyme (UTCTime)
+import Data.Thyme.Format.Aeson ()
 
 type QuoteId = Int64
 
@@ -41,7 +41,7 @@ $(deriveJSON
 makeLenses ''QuoteList
 
 data CircusS = CSQuotes
-               { _csQuotes :: !(M.Map QuoteId Quote)
+               { _csQuotes :: !(Seq Quote)
                } deriving (Show, Eq)
 
 makeLenses ''CircusS
