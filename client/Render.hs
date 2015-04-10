@@ -82,7 +82,7 @@ renderPage :: CircusS -> Html CircusA
 renderPage state
   | has _CSQuotes state = do
       div ! class_ "quotes" $ do
-        foldMapOf (csQuotes.qlQuotes.folded.to withQuoteState) renderQuote state
+        foldMapOf quotesWithState renderQuote state
         a ! class_ "prev"
           ? (href <$> state ^? csQuotes.qlPrev._Just._value) $
           i ! class_ "icon-white icon-backward" $ ""
@@ -90,7 +90,8 @@ renderPage state
           ? (href <$> state ^? csQuotes.qlNext._Just._value) $
           i ! class_ "icon-white icon-forward" $ ""
   | otherwise = error "Impossible"
-  where withQuoteState quote = (state^?!csQuoteStates.ix (quote^.quoteId).to (quote ,))
+  where withQuoteState quote = (state^?csQuoteStates.ix (quote^.quoteId).to (quote ,))
+        quotesWithState = csQuotes.qlQuotes.folded.to withQuoteState._Just
 
 renderBody :: CircusS -> Html CircusA
 renderBody state = do
