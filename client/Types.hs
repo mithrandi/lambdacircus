@@ -20,6 +20,9 @@ data Quote = Quote
              , _quoteVotesAgainst :: !Int64
              , _quoteRating       :: !Int64
              , _quoteVotes        :: !Int64
+             , _quoteDeletable    :: !Bool
+             , _quoteVoteUp       :: !Text
+             , _quoteVoteDown     :: !Text
              } deriving (Show, Eq)
 
 $(deriveJSON
@@ -32,7 +35,8 @@ data QuoteList = QuoteList
                  { _qlPrev   :: Maybe Text
                  , _qlNext   :: Maybe Text
                  , _qlQuotes :: [Quote]
-                 } deriving (Show, Eq)
+                 }
+               deriving (Show, Eq)
 
 $(deriveJSON
   defaultOptions
@@ -43,14 +47,18 @@ makePrisms ''QuoteList
 
 data CircusS = CSQuotes
                { _csQuotes :: !QuoteList
-               } deriving (Show, Eq)
+               }
+             deriving (Show, Eq)
 
 makeLenses ''CircusS
 makePrisms ''CircusS
 
 data CircusA = UpdateQuote Quote
              | ReplaceQuotes QuoteList
+             | VoteA Text
              deriving (Show, Eq)
 
-data CircusR = FetchQuotes { url :: Text }
-             | FetchQuote { url :: Text }
+data CircusR = FetchQuotes Text
+             | FetchQuote Text
+             | VoteR Text
+             deriving (Show, Eq)

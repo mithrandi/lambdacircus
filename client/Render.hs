@@ -1,17 +1,18 @@
 module Render where
 
-import Blaze.ReactJS.Base (WindowState(..))
-import Control.Lens
-import Data.Foldable (foldMap)
-import Data.Maybe (Maybe(..))
-import Data.Monoid ((<>))
-import Data.String (fromString)
-import Control.Applicative ((<$>))
-import Prelude (($), (.), show, String)
-import Text.Blaze.Html5
-import Text.Blaze.Html5.Attributes hiding (span, form)
-import Text.Blaze.Internal (Attributable)
-import Types
+import           Blaze.ReactJS.Base (WindowState(..))
+import           Control.Applicative ((<$>))
+import           Control.Lens
+import           Control.Monad (when)
+import           Data.Foldable (foldMap)
+import           Data.Monoid ((<>))
+import           Data.String (fromString)
+import           Prelude (($), (.), show, String, Maybe(..))
+import qualified Text.Blaze.Event as E
+import           Text.Blaze.Html5 hiding (title)
+import           Text.Blaze.Html5.Attributes hiding (span, form)
+import           Text.Blaze.Internal (Attributable)
+import           Types
 
 _html :: (ToMarkup a) => Getter a (Html b)
 _html = to toHtml
@@ -77,18 +78,15 @@ renderFooter = do
       " collection."
 
 renderPage :: CircusS -> Html CircusA
-renderPage state
-  | has _CSQuotes state = do
+renderPage state@(CSQuotes _) = do
       div ! class_ "quotes" $ do
         foldMapOf (csQuotes.qlQuotes.folded) renderQuote state
         a ! class_ "prev"
           ? (href <$> state^?csQuotes.qlPrev._Just._value) $
-          i ! class_ "icon-white icon-backward" $
-            ""
+          i ! class_ "icon-white icon-backward" $ ""
         a ! class_ "next"
           ? (href <$> state^?csQuotes.qlNext._Just._value) $
-          i ! class_ "icon-white icon-forward" $
-            ""
+          i ! class_ "icon-white icon-forward" $ ""
 
 renderBody :: CircusS -> Html CircusA
 renderBody state = do
@@ -112,5 +110,18 @@ renderQuote quote = do
           quote^.quoteVotesAgainst._html
       div ! class_ "timestamp" $
         quote^.quoteAdded.to show._html
+      div ! class_ "controls" $ do
+        button ! class_ "btn btn-mini btn-success"
+               ! title "Vote for"
+               ! E.onClick' (VoteA $ quote^.quoteVoteUp) $
+          i ! class_ "icon-white icon-arrow-up" $ ""
+        button ! class_ "btn btn-mini btn-danger"
+               ! title "Vote against"
+               ! E.onClick' (VoteA $ quote^.quoteVoteDown) $
+          i ! class_ "icon-white icon-arrow-down" $ ""
+        when (quote^.quoteDeletable) $
+           button ! class_ "btn btn-mini"
+                  ! title "Remove" $
+             i ! class_ "icon-white icon-remove" $ ""
     div ! class_ "span9 content" $
       p (quote^.quoteContent._html)

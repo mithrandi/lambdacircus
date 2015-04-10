@@ -1,6 +1,6 @@
 module Main where
 
-import           Blaze.Core (App(..), ApplyActionM, runApplyActionM)
+import           Blaze.Core (App(..), ApplyActionM, runApplyActionM, submitRequest)
 import           Blaze.ReactJS.Run (runApp')
 import           Control.Applicative ((<$>), (<*>))
 import           Control.Lens
@@ -10,7 +10,7 @@ import qualified Data.Sequence as Seq
 
 import           Render (render)
 import           Types
-import           XHR (fetchJSON, clearBody)
+import           XHR (fetchJSON, clearBody, postEmptyJSON)
 
 main :: IO ()
 main = do
@@ -38,6 +38,7 @@ applyCircusA action = case action of
     csQuotes . qlQuotes . traversed . filtered ((== qid) . view quoteId) .= q
   ReplaceQuotes ql -> do
     csQuotes .= ql
+  VoteA url -> submitRequest [(VoteR url)]
 
 handle :: (CircusA -> IO ()) -> CircusR -> IO ()
 handle chan req =
@@ -48,3 +49,6 @@ handle chan req =
    FetchQuote url -> do
      quote <- fetchJSON url
      chan (ReplaceQuotes (QuoteList Nothing Nothing [quote]))
+   VoteR url -> do
+     quote <- postEmptyJSON url
+     chan (UpdateQuote quote)

@@ -115,9 +115,21 @@ mkRequestGeneric responseType convertResponse method send url header cb = do
   _ <- send xhr
   return xhr
 
-fetchJSON :: (FromJSON a) => T.Text -> IO a
+fetchJSON :: FromJSON a => T.Text -> IO a
 fetchJSON url = do
   res <- newEmptyMVar
   _ <- mkBinaryGet (T.unpack url) [("Accept", "application/json")] (putMVar res)
+  Just v <- decodeStrict <$> takeMVar res
+  return v
+
+postEmptyJSON :: FromJSON a => T.Text -> IO a
+postEmptyJSON url = do
+  res <- newEmptyMVar
+  _ <- mkBinaryRequest
+       "POST"
+       xhrSend
+       (T.unpack url)
+       [("Accept", "application/json")]
+       (putMVar res)
   Just v <- decodeStrict <$> takeMVar res
   return v
