@@ -87,10 +87,6 @@ instance Yesod App where
             mapM_ (addScript . StaticR) [
                 js_jquery_min_js,
                 js_bootstrap_min_js,
-                js_prefixfree_min_js,
-                js_xdate_js,
-                js_underscore_min_js,
-                js_backbone_min_js,
                 js_client_js]
             $(widgetFile "default-layout")
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
