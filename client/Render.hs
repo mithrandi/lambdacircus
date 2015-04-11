@@ -31,7 +31,7 @@ render :: CircusS -> WindowState CircusA
 render state = WindowState (renderBody state) ""
 
 renderHeader :: Html CircusA
-renderHeader = do
+renderHeader = 
   div ! class_ "header" $
     div ! class_ "navbar navbar-fixed-top" $
       div ! class_ "navbar-inner" $
@@ -71,7 +71,7 @@ renderHeader = do
                       ! placeholder "Search"
 
 renderFooter :: Html a
-renderFooter = do
+renderFooter =
   div ! class_ "footer" $
     p $ do
       void "“Magnifying Glass” symbol from "
@@ -80,7 +80,7 @@ renderFooter = do
 
 renderPage :: CircusS -> Html CircusA
 renderPage state
-  | has _CSQuotes state = do
+  | has _CSQuotes state =
       div ! class_ "quotes" $ do
         foldMapOf quotesWithState renderQuote state
         a ! class_ "prev"
@@ -90,7 +90,7 @@ renderPage state
           ? (href <$> state ^? csQuotes.qlNext._Just._value) $
           i ! class_ "icon-white icon-forward" $ ""
   | otherwise = error "Impossible"
-  where withQuoteState quote = (state^?csQuoteStates.ix (quote^.quoteId).to (quote ,))
+  where withQuoteState quote = state^?csQuoteStates.ix (quote^.quoteId).to (quote ,)
         quotesWithState = csQuotes.qlQuotes.folded.to withQuoteState._Just
 
 renderBody :: CircusS -> Html CircusA
@@ -101,7 +101,7 @@ renderBody state = do
     renderFooter
 
 renderQuote :: (Quote, QuoteState) -> Html CircusA
-renderQuote (quote, qs) = do
+renderQuote (quote, qs) =
   div ! class_ "quote row-fluid" $ do
     div ! class_ "span3 info" $ do
       a ! rel "bookmark"
@@ -115,7 +115,7 @@ renderQuote (quote, qs) = do
           quote^.quoteVotesAgainst._html
       div ! class_ "timestamp" $
         quote^.quoteAdded.to show._html
-      div ! class_ "controls" $ do
+      div ! class_ "controls" $
         case qs of
           QSVoted -> i ! class_ "voted icon-white icon-ok" $ ""
           _       -> do
