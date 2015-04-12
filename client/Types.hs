@@ -23,6 +23,7 @@ data Quote = Quote
              , _quoteDeletable    :: !Bool
              , _quoteVoteUp       :: !Text
              , _quoteVoteDown     :: !Text
+             , _quoteSelf         :: !Text
              } deriving (Show, Read, Eq)
 
 $(deriveJSON

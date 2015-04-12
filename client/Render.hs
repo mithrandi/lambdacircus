@@ -135,8 +135,8 @@ renderQuote :: (Quote, QuoteState) -> Html CircusA
 renderQuote (quote, qs) =
   div ! class_ "quote row-fluid" $ do
     div ! class_ "span3 info" $ do
-      a ! rel "bookmark"
-        ! href "#" $
+      routedLink (quote^.quoteSelf)
+        ! rel "bookmark" $
         h1 (quote^.quoteId._html)
       div ! class_ "rating" $ do
         span ! class_ "votes-for" $
