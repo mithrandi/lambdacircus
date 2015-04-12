@@ -22,6 +22,8 @@ executable lambdacircus-client
                      , OverloadedStrings
                      , OverloadedLists
                      , TupleSections
+                     , ViewPatterns
+                     , TypeFamilies
   ghcjs-options:       -Wall -Werror -O2
   build-depends:       base >=4.7 && <4.8
                      , blaze-react
@@ -33,5 +35,8 @@ executable lambdacircus-client
                      , lens-aeson
                      , ghcjs-base
                      , bytestring
+                     , network-uri
+                     , split
+                     , mtl
   -- hs-source-dirs:      
   default-language:    Haskell2010

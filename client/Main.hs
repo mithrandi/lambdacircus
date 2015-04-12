@@ -4,11 +4,20 @@ import           Blaze.Core (App(..), ApplyActionM, runApplyActionM, submitReque
 import           Blaze.ReactJS.Run (runApp')
 import           Control.Applicative ((<$>))
 import           Control.Lens
+import           Control.Monad (unless)
+import           Control.Monad.State (put)
+import           Data.Aeson.Lens (_Object, _String)
+import           Data.Function (on)
+import           Data.List.Split (splitOn)
 import qualified Data.Map.Strict as M
+import qualified Data.Text as T
+import           Data.Text.Lens (_Text)
+import           GHCJS.Foreign (fromJSString)
+import           Network.URI (parseURIReference, uriPath)
 
 import           Render (render)
 import           Types
-import           XHR (fetchJSON, clearBody, postEmptyJSON)
+import           XHR (fetchJSON, clearBody, postEmptyJSON, postJSON, pathname)
 
 main :: IO ()
 main = do
@@ -20,7 +29,7 @@ main = do
 app :: App CircusS CircusA [CircusR]
 app = App
       { appInitialState   = initialState
-      , appInitialRequest = [FetchQuotes "/quotes"]
+      , appInitialRequest = [InitRoute]
       , appApplyAction    = runApplyActionM . applyCircusA
       }
 
@@ -30,17 +39,41 @@ initialState = CSQuotes
                , _csQuoteStates = []
                }
 
+
+parseRoute :: T.Text -> [String]
+parseRoute = toListOf $ _Text
+             . to parseURIReference
+             . _Just
+             . to uriPath
+             . to (splitOn "/")
+             . folded
+
 applyCircusA :: CircusA -> ApplyActionM CircusS [CircusR] ()
 applyCircusA action = case action of
   UpdateQuote q -> do
-    let qid = q^.quoteId
-    csQuotes . qlQuotes . traversed . filtered ((== qid) . view quoteId) .= q
+    let qidEq = (==) `on` view quoteId
+    csQuotes . qlQuotes . traversed . filtered (qidEq q) .= q
   UpdateQuoteState qid qs ->
     csQuoteStates . ix qid .= qs
   ReplaceQuotes ql -> do
-    csQuotes .= ql
-    csQuoteStates .= M.fromList (ql ^.. qlQuotes.traversed.quoteId.to (, QSNormal))
+    put $
+      CSQuotes
+      ql
+      (M.fromList (ql ^.. qlQuotes.traversed.quoteId.to (, QSNormal)))
+  ChangeRoute url -> case parseRoute url of
+    ("":"top":"pages":_)   -> submitRequest [FetchQuotes url]
+    ("":"quotes":"from":_) -> submitRequest [FetchQuotes url]
+    ["","quotes",_]        -> submitRequest [FetchQuote url]
+    ["","quotes"]          -> submitRequest [FetchQuotes url]
+    ["","newQuote"]        -> put (CSNewQuote "")
+    _                      -> return ()
   VoteA qid url -> submitRequest [VoteR qid url]
+  ChangeContent content ->
+    csContent .= content
+  CreateQuoteA -> do
+    content <- use csContent
+    unless (T.null content) $
+      submitRequest [CreateQuoteR content]
 
 handle :: (CircusA -> IO ()) -> CircusR -> IO ()
 handle chan req =
@@ -56,3 +89,11 @@ handle chan req =
      quote <- postEmptyJSON url
      chan (UpdateQuote quote)
      chan (UpdateQuoteState qid QSVoted)
+   InitRoute -> do
+     path <- fromJSString <$> pathname
+     chan (ChangeRoute path)
+   CreateQuoteR content -> do
+     quote <- postJSON
+             "/newQuote"
+             (_Object._Wrapped # [("content", _String # content)] :: T.Text)
+     chan (ReplaceQuotes (QuoteList Nothing Nothing [quote]))

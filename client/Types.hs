@@ -23,7 +23,7 @@ data Quote = Quote
              , _quoteDeletable    :: !Bool
              , _quoteVoteUp       :: !Text
              , _quoteVoteDown     :: !Text
-             } deriving (Show, Eq)
+             } deriving (Show, Read, Eq)
 
 $(deriveJSON
   defaultOptions
@@ -36,7 +36,7 @@ data QuoteList = QuoteList
                  , _qlNext   :: Maybe Text
                  , _qlQuotes :: [Quote]
                  }
-               deriving (Show, Eq)
+               deriving (Show, Read, Eq)
 
 $(deriveJSON
   defaultOptions
@@ -49,15 +49,17 @@ makePrisms ''QuoteList
 data QuoteState = QSNormal
                 | QSVoting
                 | QSVoted
-                deriving (Show, Eq)
+                deriving (Show, Read, Eq)
 makePrisms ''QuoteState
 
 data CircusS = CSQuotes
                { _csQuotes      :: !QuoteList
                , _csQuoteStates :: !(M.Map QuoteId QuoteState)
                }
-             deriving (Show, Eq)
-
+             | CSNewQuote
+               { _csContent     :: !Text
+               }
+             deriving (Show, Read, Eq)
 makeLenses ''CircusS
 makePrisms ''CircusS
 
@@ -65,9 +67,14 @@ data CircusA = UpdateQuote Quote
              | UpdateQuoteState QuoteId QuoteState
              | ReplaceQuotes QuoteList
              | VoteA QuoteId Text
+             | ChangeRoute Text
+             | ChangeContent Text
+             | CreateQuoteA
              deriving (Show, Eq)
 
 data CircusR = FetchQuotes Text
              | FetchQuote Text
              | VoteR QuoteId Text
+             | InitRoute
+             | CreateQuoteR Text
              deriving (Show, Eq)

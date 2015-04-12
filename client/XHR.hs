@@ -132,3 +132,19 @@ postEmptyJSON url = do
        (putMVar res)
   Just v <- decodeStrict <$> takeMVar res
   return v
+
+postJSON :: (FromJSON a, ToJSString b) => T.Text -> b -> IO a
+postJSON url d = do
+  res <- newEmptyMVar
+  _ <- mkBinaryRequest
+       "POST"
+       (flip xhrSendWithData (toJSString d))
+       (T.unpack url)
+       [("Accept", "application/json")]
+       (putMVar res)
+  Just v <- decodeStrict <$> takeMVar res
+  return v
+
+foreign import javascript unsafe
+  "window.location.pathname"
+  pathname :: IO JSString

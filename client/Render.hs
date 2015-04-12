@@ -1,9 +1,10 @@
 module Render where
 
 import           Blaze.ReactJS.Base (WindowState(..))
-import           Control.Applicative ((<$>))
-import           Control.Lens
+import           Control.Lens hiding (pre)
 import           Control.Monad (when, void)
+import           Data.Monoid ((<>), mempty)
+import           Data.Text (Text)
 import           Prelude (($), (.), show, Maybe(..), Bool, otherwise, error)
 import qualified Text.Blaze.Event as E
 import           Text.Blaze.Html5 hiding (title)
@@ -30,6 +31,26 @@ disabled = boolAttribute "disabled"
 render :: CircusS -> WindowState CircusA
 render state = WindowState (renderBody state) ""
 
+routedLink :: Text -> Html CircusA -> Html CircusA
+routedLink url = routedLink' (Just url)
+
+routedLink' :: Maybe Text -> Html CircusA -> Html CircusA
+-- React doesn't know how to remove attributes (see
+-- <https://github.com/facebook/react/issues/1448>) so instead, we make the
+-- entire <a> element conditional.
+routedLink' (Just url) = a ! href (toValue url)
+                           ! E.onClick' (ChangeRoute url)
+routedLink' Nothing = mempty
+
+quotesLink :: Text -> AttributeValue -> Html CircusA -> Html CircusA
+quotesLink url = quotesLink' (Just url)
+
+quotesLink' :: Maybe Text -> AttributeValue -> Html CircusA -> Html CircusA
+quotesLink' url iconClass linkTitle =
+  routedLink' url $ do
+    i ! class_ ("icon-white " <> iconClass) $ ""
+    " " <> linkTitle
+
 renderHeader :: Html CircusA
 renderHeader = 
   div ! class_ "header" $
@@ -47,20 +68,10 @@ renderHeader =
             "Slipgate Quote Database"
           div ! class_ "nav-collapse" $
             ul ! class_ "nav pull-right" $ do
-              li $
-                a ! href "/" $ do
-                  i ! class_ "icon-white icon-home" $ ""
-                  " Overview"
-              li $
-                a ! href "/top" $ do
-                  i ! class_ "icon-white icon-comment" $ ""
-                  " Top"
-              li $
-                a ! href "/quotes" $ do
-                  i ! class_ "icon-white icon-comment" $ ""
-                  " Browse"
-              li $
-                a ! href "/newQuote" $ do
+              li $ quotesLink "/"            "icon-home"    "Overview"
+              li $ quotesLink "/top/pages/0" "icon-comment" "Top"
+              li $ quotesLink "/quotes"      "icon-comment" "Browse"
+              li $ routedLink "/newQuote" $ do
                   i ! class_ "icon-white icon-comment" $ ""
                   " New Quote"
           div ! class_ "search" $
@@ -83,12 +94,32 @@ renderPage state
   | has _CSQuotes state =
       div ! class_ "quotes" $ do
         foldMapOf quotesWithState renderQuote state
-        a ! class_ "prev"
-          ? (href <$> state ^? csQuotes.qlPrev._Just._value) $
-          i ! class_ "icon-white icon-backward" $ ""
-        a ! class_ "next"
-          ? (href <$> state ^? csQuotes.qlNext._Just._value) $
-          i ! class_ "icon-white icon-forward" $ ""
+        quotesLink' 
+          (state ^? csQuotes.qlPrev._Just)
+          "icon-backward"
+          ""
+        quotesLink'
+          (state ^? csQuotes.qlNext._Just)
+          "icon-forward"
+          ""
+  | has _CSNewQuote state =
+      div $ do
+        h1 "Add quote"
+        p "Paste your quote in the area below."
+        h2 "Quote format"
+        ul $ do
+          li "Edit quotes for brevity — remove or truncate irrelevant text."
+          li "Remove timestamps, unless they are relevant to the quote."
+          li $ "Consider quoting usernames with " <> code "<" <> " and " <> code ">" <> " and avoid characters that are legal in IRC nicknames, such as " <> code "[" <> " and " <> code "]" <> "."
+        p "An example of a well-formatted quote:"
+        div ! class_ "quote-content" $
+          pre "<Bob> Why did the chicken cross the road?\n<James> To get to the other side."
+        form ! action ""
+             ! E.onSubmit CreateQuoteA $ do
+          textarea ! value (state^?!csContent._value)
+                   ! E.onValueChange ChangeContent
+          input ! type_ "submit"
+                ! value "Add quote"
   | otherwise = error "Impossible"
   where withQuoteState quote = state^?csQuoteStates.ix (quote^.quoteId).to (quote ,)
         quotesWithState = csQuotes.qlQuotes.folded.to withQuoteState._Just
