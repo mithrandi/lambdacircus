@@ -51,8 +51,8 @@ quotesLink' url iconClass linkTitle =
     i ! class_ ("icon-white " <> iconClass) $ ""
     " " <> linkTitle
 
-renderHeader :: Html CircusA
-renderHeader = 
+renderHeader :: Text -> Html CircusA
+renderHeader searchContent = 
   div ! class_ "header" $
     div ! class_ "navbar navbar-fixed-top" $
       div ! class_ "navbar-inner" $
@@ -76,10 +76,12 @@ renderHeader =
                   " New Quote"
           div ! class_ "search" $
             div ! class_ "icon" $
-              form ! id "search" $
+              form ! E.onSubmit SearchA $
                 input ! type_ "text"
                       ! name "matches"
                       ! placeholder "Search"
+                      ! value (toValue searchContent)
+                      ! E.onValueChange (ChangeSearchContent)
 
 renderFooter :: Html a
 renderFooter =
@@ -89,7 +91,7 @@ renderFooter =
       a ! href "http://thenounproject.com/" $ "The Noun Project"
       " collection."
 
-renderPage :: CircusS -> Html CircusA
+renderPage :: CircusPageS -> Html CircusA
 renderPage state
   | has _CSQuotes state =
       div ! class_ "quotes" $ do
@@ -115,9 +117,9 @@ renderPage state
         div ! class_ "quote-content" $
           pre "<Bob> Why did the chicken cross the road?\n<James> To get to the other side."
         form ! action ""
-             ! E.onSubmit CreateQuoteA $ do
+             ! E.onSubmit (PageA CreateQuoteA) $ do
           textarea ! value (state^?!csContent._value)
-                   ! E.onValueChange ChangeContent
+                   ! E.onValueChange (PageA . ChangeContent)
           input ! type_ "submit"
                 ! value "Add quote"
   | otherwise = error "Impossible"
@@ -126,9 +128,9 @@ renderPage state
 
 renderBody :: CircusS -> Html CircusA
 renderBody state = do
-  renderHeader
+  renderHeader (state^.csSearchContent)
   div ! class_ "page container" $ do
-    renderPage state
+    renderPage (state^.csPage)
     renderFooter
 
 renderQuote :: (Quote, QuoteState) -> Html CircusA
@@ -153,12 +155,12 @@ renderQuote (quote, qs) =
             button ! class_ "btn btn-mini btn-success"
                    ! title "Vote for"
                    ! disabled (has _QSVoting qs)
-                   ! E.onClick' (VoteA (quote^.quoteId) (quote^.quoteVoteUp)) $
+                   ! E.onClick' (PageA $ VoteA (quote^.quoteId) (quote^.quoteVoteUp)) $
               i ! class_ "icon-white icon-arrow-up" $ ""
             button ! class_ "btn btn-mini btn-danger"
                    ! title "Vote against"
                    ! disabled (has _QSVoting qs)
-                   ! E.onClick' (VoteA (quote^.quoteId) (quote^.quoteVoteDown)) $
+                   ! E.onClick' (PageA $ VoteA (quote^.quoteId) (quote^.quoteVoteDown)) $
               i ! class_ "icon-white icon-arrow-down" $ ""
             when (quote^.quoteDeletable) $
               button ! class_ "btn btn-mini"

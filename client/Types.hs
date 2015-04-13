@@ -53,24 +53,36 @@ data QuoteState = QSNormal
                 deriving (Show, Read, Eq)
 makePrisms ''QuoteState
 
-data CircusS = CSQuotes
-               { _csQuotes      :: !QuoteList
-               , _csQuoteStates :: !(M.Map QuoteId QuoteState)
-               }
-             | CSNewQuote
-               { _csContent     :: !Text
+data CircusPageS = CSQuotes
+                   { _csQuotes        :: !QuoteList
+                   , _csQuoteStates   :: !(M.Map QuoteId QuoteState)
+                   }
+                 | CSNewQuote
+                   { _csContent       :: !Text
+                   }
+                 deriving (Show, Read, Eq)
+makeLenses ''CircusPageS
+makePrisms ''CircusPageS
+
+data CircusS = CircusS
+               { _csPage          :: !CircusPageS
+               , _csSearchContent :: !Text
                }
              deriving (Show, Read, Eq)
 makeLenses ''CircusS
-makePrisms ''CircusS
 
-data CircusA = UpdateQuote Quote
-             | UpdateQuoteState QuoteId QuoteState
-             | ReplaceQuotes QuoteList
-             | VoteA QuoteId Text
+data CircusPageA = UpdateQuote Quote
+                 | UpdateQuoteState QuoteId QuoteState
+                 | ReplaceQuotes QuoteList
+                 | VoteA QuoteId Text
+                 | ChangeContent Text
+                 | CreateQuoteA
+                 deriving (Show, Eq)
+
+data CircusA = PageA CircusPageA
+             | ChangeSearchContent Text
+             | SearchA
              | ChangeRoute Text
-             | ChangeContent Text
-             | CreateQuoteA
              deriving (Show, Eq)
 
 data CircusR = FetchQuotes Text
@@ -79,4 +91,5 @@ data CircusR = FetchQuotes Text
              | InitRoute
              | CreateQuoteR Text
              | PushState Text
+             | SearchR Text
              deriving (Show, Eq)
