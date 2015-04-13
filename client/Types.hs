@@ -26,10 +26,10 @@ data Quote = Quote
              , _quoteSelf         :: !Text
              } deriving (Show, Read, Eq)
 
-$(deriveJSON
+deriveJSON
   defaultOptions
   { fieldLabelModifier = over _head toLower . view (prefixed "_quote") }
-  ''Quote)
+  ''Quote
 makeLenses ''Quote
 
 data QuoteList = QuoteList
@@ -39,11 +39,11 @@ data QuoteList = QuoteList
                  }
                deriving (Show, Read, Eq)
 
-$(deriveJSON
+deriveJSON
   defaultOptions
   { fieldLabelModifier = over _head toLower . view (prefixed "_ql")
   , omitNothingFields = True}
-  ''QuoteList)
+  ''QuoteList
 makeLenses ''QuoteList
 makePrisms ''QuoteList
 
