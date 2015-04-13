@@ -78,4 +78,5 @@ data CircusR = FetchQuotes Text
              | VoteR QuoteId Text
              | InitRoute
              | CreateQuoteR Text
+             | PushState Text
              deriving (Show, Eq)

@@ -1,7 +1,6 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE JavaScriptFFI #-}
 {-# LANGUAGE RecursiveDo #-}
-{-# LANGUAGE OverloadedStrings #-}
 module XHR where
 
 import           Control.Applicative ((<$>))
@@ -22,43 +21,43 @@ foreign import javascript unsafe
   "new XMLHttpRequest()"
   newXhr :: IO (JSRef XMLHttpRequest)
 
-foreign import javascript unsafe
-  "($1).open(($2), ($3), ($4))"
+foreign import javascript safe
+  "$1.open($2, $3, $4)"
   xhrOpen :: JSRef XMLHttpRequest -> JSString -> JSString -> JSBool -> IO ()
 
-foreign import javascript unsafe
-  "($1).send()"
+foreign import javascript safe
+  "$1.send()"
   xhrSend :: JSRef XMLHttpRequest -> IO ()
 
-foreign import javascript unsafe
-  "($1).send(($2))"
+foreign import javascript safe
+  "$1.send($2)"
   xhrSendWithData :: JSRef XMLHttpRequest -> JSString -> IO ()
 
 foreign import javascript unsafe
-  "($1).onreadystatechange = ($2)"
+  "$1.onreadystatechange = $2;"
   xhrSetOnReadyStateChange :: JSRef XMLHttpRequest -> JSFun (IO ()) -> IO ()
 
 foreign import javascript unsafe
-  "($1).readyState"
+  "$1.readyState"
   xhrGetReadyState :: JSRef XMLHttpRequest -> IO (JSRef Int)
 
 foreign import javascript unsafe
-  "($1).responseText"
+  "$1.responseText"
   xhrGetResponseText :: JSRef XMLHttpRequest -> IO (JSString)
 
 foreign import javascript unsafe
-  "($1).response"
+  "$1.response"
   xhrGetResponse :: JSRef XMLHttpRequest -> IO (JSRef a)
 
 foreign import javascript unsafe
-  "($1).responseType = $2"
+  "$1.responseType = $2;"
   xhrSetResponseType :: JSRef XMLHttpRequest -> JSString -> IO ()
 
-foreign import javascript unsafe
-  "($1).setRequestHeader(($2), ($3));"
+foreign import javascript safe
+  "$1.setRequestHeader($2, $3)"
   xhrSetRequestHeader :: JSRef XMLHttpRequest -> JSString -> JSString -> IO ()
 
-foreign import javascript unsafe
+foreign import javascript safe
   "document.body.innerHTML = '';"
   clearBody :: IO ()
 

@@ -12,9 +12,10 @@ import           Data.List.Split (splitOn)
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
 import           Data.Text.Lens (_Text)
-import           GHCJS.Foreign (fromJSString)
+import           GHCJS.Foreign (fromJSString, jsNull)
 import           Network.URI (parseURIReference, uriPath)
 
+import           History (pushState)
 import           Render (render)
 import           Types
 import           XHR (fetchJSON, clearBody, postEmptyJSON, postJSON, pathname)
@@ -60,13 +61,15 @@ applyCircusA action = case action of
       CSQuotes
       ql
       (M.fromList (ql ^.. qlQuotes.traversed.quoteId.to (, QSNormal)))
-  ChangeRoute url -> case parseRoute url of
-    ("":"top":"pages":_)   -> submitRequest [FetchQuotes url]
-    ("":"quotes":"from":_) -> submitRequest [FetchQuotes url]
-    ["","quotes",_]        -> submitRequest [FetchQuote url]
-    ["","quotes"]          -> submitRequest [FetchQuotes url]
-    ["","newQuote"]        -> put (CSNewQuote "")
-    _                      -> return ()
+  ChangeRoute url -> do
+    submitRequest [PushState url]
+    case parseRoute url of
+     ("":"top":"pages":_)   -> submitRequest [FetchQuotes url]
+     ("":"quotes":"from":_) -> submitRequest [FetchQuotes url]
+     ["","quotes",_]        -> submitRequest [FetchQuote url]
+     ["","quotes"]          -> submitRequest [FetchQuotes url]
+     ["","newQuote"]        -> put (CSNewQuote "")
+     _                      -> return ()
   VoteA qid url -> submitRequest [VoteR qid url]
   ChangeContent content ->
     csContent .= content
@@ -96,4 +99,7 @@ handle chan req =
      quote <- postJSON
              "/newQuote"
              (_Object._Wrapped # [("content", _String # content)] :: T.Text)
+     pushState jsNull "" (Just (quote^.quoteSelf))
      chan (ReplaceQuotes (QuoteList Nothing Nothing [quote]))
+   PushState url ->
+     pushState jsNull "" (Just url)
