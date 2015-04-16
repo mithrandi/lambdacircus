@@ -5,7 +5,6 @@ Default: &defaults
   #analytics: UA-YOURCODE
 
 Development:
-  approot: "http://localhost:3000"
   <<: *defaults
 
 Testing:
@@ -15,5 +14,4 @@ Staging:
   <<: *defaults
 
 Production:
-  approot: "http://qdb.codehash.net"
   <<: *defaults
