@@ -12,4 +12,5 @@
 /quotes/#QuoteId QuoteR GET DELETE
 /quotes/#QuoteId/up QuoteUpR POST
 /quotes/#QuoteId/down QuoteDownR POST
+/random RandomQuoteR GET
 /newQuote NewQuoteR GET POST

@@ -58,9 +58,10 @@ applyCircusA (ChangeSearchContent t) =
 applyCircusA (ChangeRoute url) = do
   submitRequest [PushState url]
   case parseRoute url of
-   ["", ""]               -> applyCircusA (ChangeRoute "/quotes")
-   ("":"top":"pages":_)   -> submitRequest [FetchQuotes url]
-   ("":"quotes":"from":_) -> submitRequest [FetchQuotes url]
+   ["",""]                -> applyCircusA (ChangeRoute "/random")
+   ["","random"]          -> submitRequest [FetchQuote url]
+   ["","top","pages",_]   -> submitRequest [FetchQuotes url]
+   ["","quotes","from",_] -> submitRequest [FetchQuotes url]
    ["","quotes",_]        -> submitRequest [FetchQuote url]
    ["","quotes"]          -> submitRequest [FetchQuotes url]
    ["","newQuote"]        -> csPage .= CSNewQuote ""

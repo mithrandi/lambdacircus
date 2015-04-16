@@ -68,7 +68,7 @@ renderHeader searchContent =
             "Slipgate Quote Database"
           div ! class_ "nav-collapse" $
             ul ! class_ "nav pull-right" $ do
-              li $ quotesLink "/"            "icon-home"    "Overview"
+              li $ quotesLink "/random"      "icon-comment" "Random"
               li $ quotesLink "/top/pages/0" "icon-comment" "Top"
               li $ quotesLink "/quotes"      "icon-comment" "Browse"
               li $ routedLink "/newQuote" $ do

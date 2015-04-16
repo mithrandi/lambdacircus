@@ -13,7 +13,7 @@ import Yesod.Auth (maybeAuth)
 
 
 quoteWidget :: QuoteId -> Quote -> Widget
-quoteWidget quoteId quote = do
+quoteWidget quoteId quote =
     $(widgetFile "quote")
 
 
@@ -44,6 +44,17 @@ getDefQuotesR = do
   where q = "SELECT ?? FROM quote, plainto_tsquery('english', ?) query WHERE to_tsvector(translate(content, '<>', '  ')) @@ query ORDER BY ts_rank_cd(to_tsvector(translate(content, '<>', '  ')), query) DESC LIMIT 50"
 
 
+getRandomQuoteR :: Handler TypedContent
+getRandomQuoteR = do
+  [Entity qid quote] <- runDB $ rawSql q []
+  selectRep $ do
+    provideRep $ quoteJson (qid, quote)
+    provideRep $ defaultLayout $ do
+      setTitle "Quote"
+      quoteWidget qid quote
+  where q = "SELECT ?? FROM quote ORDER BY RANDOM() LIMIT 1"
+
+
 getQuotesR :: Integer -> Handler TypedContent
 getQuotesR fromId = do
     let limit = 10
@@ -66,7 +77,7 @@ getTopQuotesR page = do
         OffsetBy . fromInteger $ page * limit]
     r <- getUrlRender
     let prev = guard (page > 0) >> (Just . r . TopQuotesR) (page - 1)
-        next = guard (length quotes > 0) >> (Just . r . TopQuotesR) (page + 1)
+        next = guard (not (null quotes)) >> (Just . r . TopQuotesR) (page + 1)
     renderQuotes quotes prev next
 
 
