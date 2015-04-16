@@ -152,6 +152,14 @@ body, button, input, select, textarea {
     }
 }
 
+.new-quote {
+    form > textarea {
+        height: auto;
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
+
 .quote:hover .info .controls {
     opacity: 1.0;
 }

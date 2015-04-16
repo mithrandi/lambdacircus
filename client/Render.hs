@@ -105,26 +105,33 @@ renderPage state
           "icon-forward"
           ""
   | has _CSNewQuote state =
-      div $ do
-        h1 "Add quote"
-        p "Paste your quote in the area below."
-        h2 "Quote format"
-        ul $ do
-          li "Edit quotes for brevity — remove or truncate irrelevant text."
-          li "Remove timestamps, unless they are relevant to the quote."
-          li $ "Consider quoting usernames with " <> code "<" <> " and " <> code ">" <> " and avoid characters that are legal in IRC nicknames, such as " <> code "[" <> " and " <> code "]" <> "."
-        p "An example of a well-formatted quote:"
-        div ! class_ "quote-content" $
-          pre "<Bob> Why did the chicken cross the road?\n<James> To get to the other side."
-        form ! action ""
-             ! E.onSubmit (PageA CreateQuoteA) $ do
-          textarea ! value (state^?!csContent._value)
-                   ! E.onValueChange (PageA . ChangeContent)
-          input ! type_ "submit"
-                ! value "Add quote"
+      renderNewQuote state
   | otherwise = error "Impossible"
   where withQuoteState quote = state^?csQuoteStates.ix (quote^.quoteId).to (quote ,)
         quotesWithState = csQuotes.qlQuotes.folded.to withQuoteState._Just
+
+renderNewQuote :: CircusPageS -> Html CircusA
+renderNewQuote state =
+  div ! class_ "new-quote" $ do
+    div ! class_ "instructions" $ do
+      h1 "Add quote"
+      p "Paste your quote in the area below."
+      h2 "Quote format"
+      ul $ do
+        li "Edit quotes for brevity — remove or truncate irrelevant text."
+        li "Remove timestamps, unless they are relevant to the quote."
+        li $ "Consider quoting usernames with " <> code "<" <> " and " <> code ">" <> " and avoid characters that are legal in IRC nicknames, such as " <> code "[" <> " and " <> code "]" <> "."
+      p "An example of a well-formatted quote:"
+      div ! class_ "quote-content" $
+        pre "<Bob> Why did the chicken cross the road?\n<James> To get to the other side."
+    form ! action ""
+         ! E.onSubmit (PageA CreateQuoteA) $ do
+      textarea ! value (state^?!csContent._value)
+               ! rows "15"
+               ! E.onValueChange (PageA . ChangeContent)
+      input ! type_ "submit"
+            ! value "Add quote"
+
 
 renderBody :: CircusS -> Html CircusA
 renderBody state = do
