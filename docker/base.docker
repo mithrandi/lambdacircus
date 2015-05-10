@@ -1,0 +1,5 @@
+FROM heroku/cedar:14
+MAINTAINER Tristan Seligmann <mithrandi@mithrandi.net>
+ENV HALCYON_NO_SELF_UPDATE=1
+RUN ["git", "clone", "-b", "v1.0.5", "https://github.com/mietek/halcyon.git", "/halcyon"]
+RUN ["/halcyon/halcyon", "paths"]

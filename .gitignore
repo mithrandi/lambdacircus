@@ -5,3 +5,4 @@ config/client_session_key.aes
 static/combined/
 static/tmp/
 yesod-devel/
+halcyon-cache/

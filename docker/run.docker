@@ -1,0 +1,10 @@
+FROM mithrandi/lambdacircus-base
+MAINTAINER Tristan Seligmann <mithrandi@mithrandi.net>
+COPY . /src
+RUN ["mv", "/src/halcyon-cache", "/var/tmp/halcyon-cache"]
+RUN ["/halcyon/halcyon", "install", "--no-build", "file:///src#HEAD"]
+COPY config/settings.yml /app/config/settings.yml
+COPY static /app/static/
+WORKDIR /app
+CMD ["/app/bin/LambdaCircus", "production", "-p", "3000"]
+EXPOSE 3000

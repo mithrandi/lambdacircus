@@ -1,0 +1,4 @@
+FROM mithrandi/lambdacircus-base
+MAINTAINER Tristan Seligmann <mithrandi@mithrandi.net>
+ENTRYPOINT ["/halcyon/halcyon"]
+CMD ["install", "file:///src#HEAD"]
