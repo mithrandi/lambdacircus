@@ -1,1 +1,1 @@
-web: /app/bin/LambdaCircus production -p $PORT
+web: /app/.local/bin/LambdaCircus production -p $PORT
