@@ -5,10 +5,10 @@ import Control.Monad (guard)
 import Data.Aeson.Lens (key, _String, AsValue(), _Object, _Bool, _JSON)
 import Data.Maybe (catMaybes)
 import Data.Time (getCurrentTime, formatTime)
+import Data.Time.Format (defaultTimeLocale)
 import Database.Persist.Sql (fromSqlKey, toSqlKey, rawSql)
 import Import
 import Network.HTTP.Types (status204)
-import System.Locale (defaultTimeLocale)
 import Yesod.Auth (maybeAuth)
 
 

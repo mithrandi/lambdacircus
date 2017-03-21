@@ -1,6 +1,4 @@
-.cabal-sandbox/
-cabal.sandbox.config
-dist/
+.stack-work/
 config/client_session_key.aes
 static/combined/
 static/tmp/
