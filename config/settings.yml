@@ -15,5 +15,5 @@ Staging:
   <<: *defaults
 
 Production:
-  approot: "http://qdb.codehash.net"
+  approot: "https://qdb.codehash.net"
   <<: *defaults
