@@ -1,18 +1,20 @@
-language: haskell
+language: generic
 sudo: false
 cache:
   directories:
-    - $HOME/.cabal
-    - $HOME/.ghc
+    - $HOME/.stack
+addons:
+  apt:
+    packages:
+      - libgmp-dev
+
 before_install:
-  - cabal install 'happy >= 1.19.4'
-  - cabal install 'alex >= 3.1.3'
-#deploy:
-#  provider: heroku
-#  api_key:
-#    secure: hBbPLNburzk/YY3hbpgdmbMdfk/osgh76fYBui1Yx6CYBTfMRUii22y8rtrCeu2BD6bEVEoSzFEelxg/LsVUjHIBnowXkl26lu3qbt6WpXi6KIyNJx/Y0U1gyoghW5hHqf2OL0u4zdHc7/jueVNmPcIDqq7XHUq84xi6TvAHwJY=
-#  app: lambdacircus
-#  on:
-#    repo: mithrandi/lambdacircus
-#  skip_cleanup: true
-#  strategy: git
+- mkdir -p ~/.local/bin
+- export PATH=$HOME/.local/bin:$PATH
+- travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+
+install:
+- stack --no-terminal --install-ghc test --only-dependencies
+
+script:
+- stack --no-terminal test --haddock --no-haddock-deps
