@@ -1,12 +1,12 @@
 class Quote extends Backbone.Model
     voteUp: =>
-        d = $.post(@get('voteUp'), undefined, undefined, 'json')
+        d = $.post(@get('voteUp'), '{}', undefined, 'json')
         d.done (data) =>
             @voted = true
             @set data
 
     voteDown: =>
-        d = $.post(@get('voteDown'), undefined, undefined, 'json')
+        d = $.post(@get('voteDown'), '{}', undefined, 'json')
         d.done (data) =>
             @voted = true
             @set data

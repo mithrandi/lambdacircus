@@ -6,7 +6,7 @@ var AppView, CircusRouter, NewQuoteView, OverviewView, QuoteList, QuoteListView,
 
 var Quote = Backbone.Model.extend({
     voteUp: function () {
-        var d = $.post(this.get('voteUp'), void 0, void 0, 'json');
+        var d = $.post(this.get('voteUp'), '{}', void 0, 'json');
         return d.done((function (_this) {
             return function (data) {
                 _this.voted = true;
@@ -16,7 +16,7 @@ var Quote = Backbone.Model.extend({
     },
 
     voteDown: function () {
-        var d = $.post(this.get('voteDown'), void 0, void 0, 'json');
+        var d = $.post(this.get('voteDown'), '{}', void 0, 'json');
         return d.done((function(_this) {
             return function(data) {
                 _this.voted = true;
