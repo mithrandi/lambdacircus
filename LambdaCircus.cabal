@@ -31,7 +31,6 @@ library
                      Settings.Development
                      Handler.Root
                      Handler.Quotes
-                     Helpers.Heroku
 
     if flag(dev) || flag(library-only)
         cpp-options:   -DDEVELOPMENT
@@ -88,7 +87,6 @@ library
                  , http-types
                  , directory
                  , unordered-containers
-                 , heroku
                  , old-locale
     -- see https://github.com/yesodweb/yesod/issues/814
     if !os(windows)

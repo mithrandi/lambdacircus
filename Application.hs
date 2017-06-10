@@ -10,7 +10,6 @@ import           Data.Default (def)
 import qualified Database.Persist
 import           Database.Persist.Postgresql (createPostgresqlPool, pgConnStr, pgPoolSize)
 import           Database.Persist.Sql (runMigration)
-import           Helpers.Heroku (herokuConf)
 import           Import
 import           Network.HTTP.Client.Conduit (newManager)
 import           Network.Wai.Logger (clockDateCacher)
@@ -65,13 +64,9 @@ makeFoundation :: AppConfig DefaultEnv Extra -> IO App
 makeFoundation conf = do
     manager <- newManager
     s <- staticSite
-#if DEVELOPMENT
     dbconf <- withYamlEnvironment "config/postgresql.yml" (appEnv conf)
               Database.Persist.loadConfig >>=
               Database.Persist.applyEnv
-#else
-    dbconf <- herokuConf
-#endif
 
     loggerSet' <- newStdoutLoggerSet defaultBufSize
     (getter, _) <- clockDateCacher
