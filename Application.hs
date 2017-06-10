@@ -14,6 +14,7 @@ import           Helpers.Heroku (herokuConf)
 import           Import
 import           Network.HTTP.Client.Conduit (newManager)
 import           Network.Wai.Logger (clockDateCacher)
+import           Network.Wai.Middleware.ForceSSL (forceSSL)
 import           Network.Wai.Middleware.RequestLogger
     ( mkRequestLogger, outputFormat, OutputFormat (..), IPAddrSource (..), destination
     )
@@ -55,7 +56,7 @@ makeApplication conf = do
     -- Create the WAI application and apply middlewares
     app <- toWaiAppPlain foundation
     let logFunc = messageLoggerSource foundation (appLogger foundation)
-    return (logWare $ defaultMiddlewaresNoLogging app, logFunc)
+    return (logWare $ (defaultMiddlewaresNoLogging . forceSSL) app, logFunc)
 
 
 -- | Loads up any necessary settings, creates your foundation datatype, and

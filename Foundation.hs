@@ -59,6 +59,12 @@ instance Yesod App where
 
     makeSessionBackend _ = Just <$> envClientSessionBackend 120 "LAMBDACIRCUS_CLIENT_SESSION_KEY"
 
+    yesodMiddleware = sslOnlyMiddleware 31536000 . simpleVaryMiddleware
+      where simpleVaryMiddleware handler = do
+              addHeader "Vary" "Accept"
+              authorizationCheck
+              handler
+
     isAuthorized (QuoteR _) True = do
         mu <- maybeAuth
         case mu of
