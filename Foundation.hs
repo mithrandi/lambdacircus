@@ -55,7 +55,8 @@ type Form x = Html -> MForm (HandlerT App IO) (FormResult x, Widget)
 instance Yesod App where
     approot = ApprootMaster $ appRoot . settings
 
-    makeSessionBackend _ = Just <$> envClientSessionBackend 120 "LAMBDACIRCUS_CLIENT_SESSION_KEY"
+    makeSessionBackend _ = sslOnlySessions $
+      Just <$> envClientSessionBackend 120 "LAMBDACIRCUS_CLIENT_SESSION_KEY"
 
     yesodMiddleware = sslOnlyMiddleware 31536000 . simpleVaryMiddleware
       where simpleVaryMiddleware handler = do
