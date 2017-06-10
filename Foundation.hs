@@ -75,7 +75,6 @@ instance Yesod App where
 
     defaultLayout widget = do
         master <- getYesod
-        mmsg <- getMessage
         -- aid <- maybeAuthId
 
         -- We break up the default layout into two components:
