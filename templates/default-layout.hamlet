@@ -29,11 +29,6 @@ $maybe msg <- mmsg
                             <a .event-routed href="@{NewQuoteR}">
                                 <i .icon-white .icon-comment>
                                 \ New Quote
-                        <li>
-                            $maybe name <- aid
-                                <a href="@{AuthR LogoutR}">Logout (#{show name})
-                            $nothing
-                                <a href="@{AuthR LoginR}">Login
                 <div .search>
                     <div .icon>
                         <form #search action=@{DefQuotesR}>

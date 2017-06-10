@@ -2,7 +2,6 @@ module Foundation where
 
 import           Control.Applicative ((<$>))
 import           Control.Lens ((^.))
-import           Data.Default (def)
 import qualified Database.Persist
 import           Database.Persist.Sql (SqlBackend)
 import           Model
@@ -16,7 +15,6 @@ import           Text.Hamlet (hamletFile)
 import           Text.Jasmine (minifym)
 import           Yesod
 import           Yesod.Auth
-import           Yesod.Auth.BrowserId (authBrowserId)
 import           Yesod.Core.Types (Logger)
 import           Yesod.Default.Config
 import           Yesod.Default.Util (addStaticContentExternal)
@@ -77,7 +75,7 @@ instance Yesod App where
     defaultLayout widget = do
         master <- getYesod
         mmsg <- getMessage
-        aid <- maybeAuthId
+        -- aid <- maybeAuthId
 
         -- We break up the default layout into two components:
         -- default-layout is the contents of the body tag, and
@@ -152,7 +150,7 @@ instance YesodAuth App where
                 fmap Just $ insert $ User (credsIdent creds) False
 
     -- You can add other plugins like BrowserID, email or OAuth here
-    authPlugins _ = [authBrowserId def]
+    authPlugins _ = []
 
     authHttpManager = httpManager
 
