@@ -38,9 +38,8 @@ instance Yesod App where
     -- Controls the base of generated URLs. For more information on modifying,
     -- see: https://github.com/yesodweb/yesod/wiki/Overriding-approot
     approot = ApprootRequest $ \app req ->
-        case appRoot $ appSettings app of
-            Nothing -> getApprootText guessApproot app req
-            Just root -> root
+      (fromMaybe (getApprootText guessApproot app req)
+        (appRoot $ appSettings app))
 
     makeSessionBackend _ = sslOnlySessions $
       Just <$> envClientSessionBackend 120 "LAMBDACIRCUS_CLIENT_SESSION_KEY"
