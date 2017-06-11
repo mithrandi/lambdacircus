@@ -1,3 +1,4 @@
+$newline never
 \<!doctype html>
 \<!--[if lt IE 7]> <html class="no-js ie6 oldie" lang="en"> <![endif]-->
 \<!--[if IE 7]>    <html class="no-js ie7 oldie" lang="en"> <![endif]-->
@@ -8,6 +9,8 @@
         <meta charset="UTF-8">
 
         <title>#{pageTitle pc}
+        <meta name="description" content="">
+        <meta name="author" content="">
 
         <meta name="viewport" content="width=device-width,initial-scale=1">
 
@@ -22,19 +25,13 @@
     <body>
         ^{pageBody pc}
 
-        $maybe analytics <- extraAnalytics $ appExtra $ settings master
+        $maybe analytics <- appAnalytics $ appSettings master
             <script>
-              if(!window.location.href.match(/localhost/)){
-                window._gaq = [['_setAccount','#{analytics}'],['_trackPageview'],['_trackPageLoadTime']];
-                (function() {
-                \  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-                \  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-                \  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-                })();
-              }
-        \<!-- Prompt IE 6 users to install Chrome Frame. Remove this if you want to support IE 6.  chromium.org/developers/how-tos/chrome-frame-getting-started -->
-        \<!--[if lt IE 7 ]>
-            <script src="//ajax.googleapis.com/ajax/libs/chrome-frame/1.0.3/CFInstall.min.js">
-            <script>
-                window.attachEvent('onload',function(){CFInstall.check({mode:'overlay'})})
-        \<![endif]-->
+                if(!window.location.href.match(/localhost/)){
+                    window._gaq = [['_setAccount','#{analytics}'],['_trackPageview'],['_trackPageLoadTime']];
+                    (function() {
+                    \  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                    \  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                    \  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+                    })();
+                }

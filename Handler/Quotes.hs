@@ -3,7 +3,6 @@ module Handler.Quotes where
 import Control.Lens hiding ((.=))
 import Control.Monad (guard)
 import Data.Aeson.Lens (key, _String, AsValue(), _Object, _Bool, _JSON)
-import Data.Maybe (catMaybes)
 import Data.Time (getCurrentTime, formatTime)
 import Data.Time.Format (defaultTimeLocale)
 import Database.Persist.Sql (fromSqlKey, toSqlKey, rawSql)

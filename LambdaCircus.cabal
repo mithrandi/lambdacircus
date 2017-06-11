@@ -24,11 +24,13 @@ library
     exposed-modules: Application
                      Foundation
                      Import
+                     Import.NoFoundation
                      Model
                      Model.Quote
                      Settings
                      Settings.StaticFiles
                      Settings.Development
+                     Handler.Common
                      Handler.Root
                      Handler.Quotes
 
@@ -54,40 +56,44 @@ library
                 NoMonomorphismRestriction
                 ViewPatterns
                 RankNTypes
+                RecordWildCards
 
     build-depends: base
-                 , yesod
-                 , yesod-core
-                 , yesod-auth
-                 , yesod-static
-                 , yesod-form
+                 , aeson
                  , bytestring
-                 , text
+                 , classy-prelude-yesod
+                 , conduit
+                 , data-default
+                 , directory
+                 , directory
+                 , fast-logger
+                 , file-embed
+                 , hjsmin
+                 , http-conduit
+                 , http-types
+                 , lens
+                 , lens-aeson
+                 , monad-control
+                 , monad-logger
+                 , old-locale
                  , persistent
                  , persistent-postgresql
                  , persistent-template
-                 , template-haskell
                  , shakespeare
-                 , hjsmin
-                 , monad-control
-                 , wai-extra
-                 , yaml
-                 , http-conduit
-                 , directory
-                 , warp
-                 , data-default
-                 , aeson
-                 , lens-aeson
-                 , lens
-                 , conduit
-                 , monad-logger
-                 , fast-logger
-                 , wai-logger
+                 , template-haskell
+                 , text
                  , time
-                 , http-types
-                 , directory
                  , unordered-containers
-                 , old-locale
+                 , wai
+                 , wai-extra
+                 , wai-logger
+                 , warp
+                 , yaml
+                 , yesod
+                 , yesod-auth
+                 , yesod-core
+                 , yesod-form
+                 , yesod-static
     -- see https://github.com/yesodweb/yesod/issues/814
     if !os(windows)
         build-depends: unix
