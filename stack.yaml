@@ -9,4 +9,4 @@ image:
     name: idnar/lambdacircus
     base: fpco/stack-minrun
     entrypoints:
-      - lambdacircus
+      - LambdaCircus
