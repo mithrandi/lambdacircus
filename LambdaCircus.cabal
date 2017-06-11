@@ -92,7 +92,7 @@ library
     if !os(windows)
         build-depends: unix
 
-executable         LambdaCircus
+executable         lambdacircus
     if flag(library-only)
         Buildable: False
 
