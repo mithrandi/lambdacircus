@@ -40,7 +40,7 @@ getDefQuotesR = do
    Just matches -> do
      quotes <- runDB $ rawSql q [toPersistValue matches]
      renderQuotes quotes Nothing Nothing
-  where q = "SELECT ?? FROM quote, plainto_tsquery('simple', ?) query WHERE to_tsvector(translate(content, '<>', '  ')) @@ query ORDER BY ts_rank_cd(to_tsvector(translate(content, '<>', '  ')), query) DESC LIMIT 50"
+  where q = "SELECT ?? FROM quote, plainto_tsquery('simple', ?) query WHERE to_tsvector('simple', translate(content, '<>', '  ')) @@ query ORDER BY ts_rank_cd(to_tsvector('simple', translate(content, '<>', '  ')), query) DESC LIMIT 50"
 
 
 getQuotesR :: Integer -> Handler TypedContent
